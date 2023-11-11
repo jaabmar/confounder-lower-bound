@@ -3,7 +3,7 @@ from typing import Callable, Optional
 
 import numpy as np
 from torch.utils import data
-import pdb
+
 
 def alpha_fn(pi, lambda_):
     return (pi * lambda_) ** -1 + 1.0 - lambda_**-1
@@ -14,24 +14,12 @@ def beta_fn(pi, lambda_):
 
 
 def f_mu_linear(x, t, u):
-    mu = (
-        (2 * t - 1) * x
-        + (2.0 * t - 1)
-        # - 2 * np.sin((4 * t - 2) * x)
-        # - (theta * u - 2) # * (1 + 0.5 * x)
-        + u
-    )
+    mu = (2 * t - 1) * x + (2.0 * t - 1) + u
     return mu
 
 
 def f_mu(x, t, u, theta=4.0):
-    mu = (
-        (2 * t - 1) * x
-        + (2.0 * t - 1)
-        - 2 * np.sin((4 * t - 2) * x)
-        - (theta * u - 2) * (1 + 0.5 * x)
-        + u
-    )
+    mu = (2 * t - 1) * x + (2.0 * t - 1) - 2 * np.sin((4 * t - 2) * x) - (theta * u - 2) * (1 + 0.5 * x) + u
     return mu
 
 
@@ -50,24 +38,49 @@ def complete_propensity(x, u, gamma, beta=0.75, effective_conf=1.0):
 
 
 class Synthetic(data.Dataset):
+    """
+    Synthetic dataset class for generating observational and randomized controlled trial (RCT) data.
+
+    Attributes:
+        num_examples (int): Number of observational examples.
+        num_examples_rct (int): Number of RCT examples.
+        gamma_star (float): True confounding strength.
+        effective_conf (float): Effective confounding.
+        num_groups (int): Number of groups in the dataset.
+        p_u (str): Distribution of 'u'. Currently only 'uniform' is supported.
+        theta (float): Parameter theta for non-linear model.
+        beta (float): Beta parameter for complete propensity.
+        sigma_y (float): Standard deviation for outcome noise.
+        domain (float): Domain range for observational data.
+        domain_rct (float): Domain range for RCT data.
+        seed (int): Random seed.
+        linear (bool): Flag to use linear model.
+
+    Methods:
+        __len__(): Returns the length of the dataset.
+        __getitem__(index): Returns the input and target at the specified index.
+        tau_fn(x): Function to compute treatment effect.
+    """
+
     def __init__(
         self,
-        num_examples_obs,
-        num_examples_rct,
-        gamma_star,
-        effective_conf,
-        num_groups=1,
-        mode="pi",
-        p_u="uniform",
-        theta=4.0,
-        beta=0.75,
-        sigma_y=0.1,
-        domain=2.0,
-        domain_rct=1.0,
-        seed=1331,
-        linear=True
-        # split=None,
+        num_examples_obs: int,
+        num_examples_rct: int,
+        gamma_star: float,
+        effective_conf: float,
+        num_groups: int = 1,
+        p_u: str = "uniform",
+        theta: float = 4.0,
+        beta: float = 0.75,
+        sigma_y: float = 0.1,
+        domain: float = 2.0,
+        domain_rct: float = 1.0,
+        seed: int = 1331,
+        linear: bool = True,
     ):
+        """
+        Constructs the Synthetic dataset object with specified parameters.
+        """
         super(Synthetic, self).__init__()
         rng = np.random.default_rng(seed=seed)
         self.num_examples = num_examples_obs
@@ -87,9 +100,7 @@ class Synthetic(data.Dataset):
             raise NotImplementedError(f"{p_u} is not a supported distribution")
 
         self.pi = (
-            complete_propensity(
-                x=self.x, u=self.u, gamma=gamma_star, beta=beta, effective_conf=self.effective_conf
-            )
+            complete_propensity(x=self.x, u=self.u, gamma=gamma_star, beta=beta, effective_conf=self.effective_conf)
             .astype("float32")
             .ravel()
         )
@@ -104,23 +115,9 @@ class Synthetic(data.Dataset):
             self.mu1 = f_mu(x=self.x, t=1.0, u=self.u, theta=theta).astype("float32").ravel()
 
         self.y0 = self.mu0 + eps
-        #self.y0 = np.random.binomial(n=1,p=(self.y0 - self.y0.min())/(self.y0.max()-self.y0.min()))
         self.y1 = self.mu1 + eps
-        #self.y1 = np.random.binomial(n=1,p=(self.y1 - self.y1.min())/(self.y1.max()-self.y1.min()))
         self.y = self.t * self.y1 + (1 - self.t) * self.y0
         self.tau = self.mu1 - self.mu0
-        if mode == "pi":
-            self.inputs = self.x
-            self.targets = self.t
-        elif mode == "mu":
-            self.inputs = np.hstack([self.x, np.expand_dims(self.t, -1)])
-            self.targets = self.y
-        else:
-            raise NotImplementedError(
-                f"{mode} not supported. Choose from 'pi'  for propensity models or 'mu' for expected outcome models"
-            )
-        self.y_mean = np.array([0.0], dtype="float32")
-        self.y_std = np.array([1.0], dtype="float32")
 
         group_assigner = assign_groups(num_groups, domain)
         self.s = group_assigner(self.x)
@@ -141,13 +138,28 @@ class Synthetic(data.Dataset):
             self.s_rct = np.unique(self.rct.s)
         self.s_obs = np.unique(self.s)
 
-    def __len__(self):
-        return len(self.targets)
+    def __getitem__(self, index: int) -> tuple:
+        """
+        Retrieves the input and target data at the specified index.
 
-    def __getitem__(self, index):
-        return self.inputs[index], self.targets[index : index + 1]
+        Args:
+            index (int): The index of the item to retrieve.
 
-    def tau_fn(self, x):
+        Returns:
+            tuple: A tuple containing the input and target data at the given index.
+        """
+        return self.x[index], self.y[index : index + 1]
+
+    def tau_fn(self, x: np.ndarray) -> np.ndarray:
+        """
+        Computes the treatment effect function.
+
+        Args:
+            x (np.ndarray): Input feature array.
+
+        Returns:
+            np.ndarray: Treatment effect computed for the input array.
+        """
         return f_mu(x=x, t=1.0, u=1.0, theta=0.0) - f_mu(x=x, t=0.0, u=1.0, theta=0.0)
 
 
@@ -229,9 +241,7 @@ class RCT:
         """
         rng = np.random.default_rng(seed=seed)
         self.u = rng.uniform(size=(self.num_examples, 1)).astype(np.float32)
-        self.x = rng.uniform(-self.domain, self.domain, size=(self.num_examples, 1)).astype(
-            np.float32
-        )
+        self.x = rng.uniform(-self.domain, self.domain, size=(self.num_examples, 1)).astype(np.float32)
         self.pi = np.full((self.num_examples,), 0.5).astype("float32").ravel()
         self.t = rng.binomial(1, self.pi).astype(np.float32)
         eps = (self.sigma_y * rng.normal(size=self.t.shape)).astype(np.float32)

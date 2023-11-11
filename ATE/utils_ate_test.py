@@ -79,9 +79,7 @@ def compute_group_variance(
             for _ in range(n_resamples)
         ]
         with ProcessPoolExecutor() as executor:
-            group_bootstrap_means = list(
-                executor.map(compute_group_bootstrap_means, bootstrap_samples)
-            )
+            group_bootstrap_means = list(executor.map(compute_group_bootstrap_means, bootstrap_samples))
 
         group_variances.append(np.var(group_bootstrap_means))
 

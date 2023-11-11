@@ -1,36 +1,43 @@
 import concurrent.futures
 import time
-from typing import Callable, Dict, Optional, Tuple
+from typing import Any, Callable, Dict, Optional, Tuple
 
 import numpy as np
 import xgboost as xgb
 
 from ATE.methods.QB import QBSensitivityAnalysis
 from ATE.methods.ZSB import ZSBSensitivityAnalysis
-
 from utils_evaluate import get_quantile_regressor
-<<<<<<< HEAD
-=======
-import xgboost as xgb
-from quantile_forest import RandomForestQuantileRegressor
-from sklearn.ensemble import RandomForestRegressor
-from CATE.cate_bounds import  MultipleCATEBoundEstimators
->>>>>>> 1177b35e2f1510c613324413f19c5fd8728b96fb
 
 
 class BootstrapSensitivityAnalysis:
     """
-    A class that performs bootstrap on a SensitivityAnalysis object and obtains distributions for the upper bounds and
-    lower bounds
+    A class that performs bootstrap sensitivity analysis. It applies bootstrap methodology
+    to a SensitivityAnalysis object to obtain distributions for upper and lower bounds of
+    sensitivity measures.
+
+    Attributes:
+        sa_name (str): Name of the sensitivity analysis.
+        obs_inputs (np.ndarray): Array of observational inputs.
+        obs_treatment (np.ndarray): Array of treatment indicators.
+        obs_outcome (np.ndarray): Array of outcomes.
+        gammas (list): List of gamma values for sensitivity analysis.
+        binary (bool): Indicates if the outcome is binary. Defaults to False.
+        seed (int): Random seed for reproducibility. Defaults to 50.
+        e_x_func (Optional[Callable[..., np.ndarray]]): Function for propensity score.
+        bounds_dist (Optional[Dict[str, Tuple]]): Distribution of bounds. Initialized as None.
+        kwargs_sa_control (Dict): Keyword arguments for control group in sensitivity analysis.
+        kwargs_sa_treated (Dict): Keyword arguments for treated group in sensitivity analysis.
+        outcome_func_dict (Optional[Dict]): Dictionary of outcome functions. Initialized as None.
     """
 
     def __init__(
         self,
-        sa_name,
-        inputs,
-        treatment,
-        outcome,
-        gammas,
+        sa_name: str,
+        inputs: np.ndarray,
+        treatment: np.ndarray,
+        outcome: np.ndarray,
+        gammas: list,
         binary: bool = False,
         seed: int = 50,
         e_x_func: Optional[Callable[..., np.ndarray]] = None,
@@ -52,13 +59,19 @@ class BootstrapSensitivityAnalysis:
         self,
         num_samples: int,
         sample_size: Optional[int] = None,
-        fast_quantile: Optional[bool] = False,
-    ) -> Dict[str, Tuple]:
+        fast_quantile: bool = False,
+    ) -> Dict[str, Tuple[np.ndarray, np.ndarray]]:
         """
-        Perform bootstrap on the SensitivityAnalysis object and obtain distributions for the upper bounds and lower bounds
-        :param num_samples: number of bootstrap samples to generate
-        :param sample_size: size of each bootstrap sample
-        :return: tuple of lists containing distribution values for lower bounds and upper bounds respectively
+        Performs bootstrap analysis to obtain distributions for upper and lower bounds.
+
+        Args:
+            num_samples (int): Number of bootstrap samples to generate.
+            sample_size (Optional[int]): Size of each bootstrap sample. Defaults to the size of obs_inputs.
+            fast_quantile (bool): Indicates if fast quantile computation is used.
+
+        Returns:
+            Dict[str, Tuple[np.ndarray, np.ndarray]]: Dictionary mapping gamma values to tuples
+            of arrays containing lower and upper bound distributions, respectively.
         """
         if sample_size is None:
             sample_size = len(self.obs_inputs)
@@ -69,61 +82,18 @@ class BootstrapSensitivityAnalysis:
         obs_inputs = self.obs_inputs
         obs_treatment = self.obs_treatment
         obs_outcome = self.obs_outcome
-<<<<<<< HEAD
         if self.sa_name == "QB" and (not self.binary):
-            self.kwargs_sa_treated, self.kwargs_sa_control = self.get_all_quantile_models(
-                fast=fast_quantile
-            )
+            self.kwargs_sa_treated, self.kwargs_sa_control = self.get_all_quantile_models(fast=fast_quantile)
             print("Quantile functions are now trained for QB. Starting bootstrap.")
 
-        elif self.binary:
+        elif self.sa_name == "QB" and self.binary:
             outcome_model_control = xgb.XGBRegressor()
             outcome_model_treatment = xgb.XGBRegressor()
 
-            outcome_model_control.fit(
-                obs_inputs[obs_treatment == 0], obs_outcome[obs_treatment == 0]
-            )
-            outcome_model_treatment.fit(
-                obs_inputs[obs_treatment == 1], obs_outcome[obs_treatment == 1]
-            )
-            self.outcome_func_dict = [outcome_model_control, outcome_model_treatment]
-            print("Outcome functions are now trained. Starting bootstrap.")
-=======
-        #if self.sa_name == "QB" and (not self.binary):
-          #  self.kwargs_sa_treated, self.kwargs_sa_control = self.get_all_quantile_models()
-           # print("Quantile functions are now trained for QB. Starting bootstrap.")\
-        self.kwargs = {}
-        if self.sa_name == "QB" and not self.binary:
-            self.qr_func_control = RandomForestQuantileRegressor(
-                    n_estimators=200,
-                    max_depth=6,
-                    min_samples_leaf=0.01,
-                    n_jobs=-2)
-            self.qr_func_treatment = RandomForestQuantileRegressor(n_estimators=200,
-                    max_depth=6,
-                    min_samples_leaf=0.01,
-                    n_jobs=-2)
-
-            self.qr_func_control.fit(obs_inputs[obs_treatment == 0], obs_outcome[obs_treatment == 0])
-            self.qr_func_treatment.fit(obs_inputs[obs_treatment == 1], obs_outcome[obs_treatment == 1])
-
-            self.kwargs= {'qr_funcs':[self.qr_func_control,self.qr_func_treatment]}
-            
-
-        elif self.sa_name == "QB" and self.binary:
-            outcome_model_control = LogisticRegression()
-            outcome_model_treatment = LogisticRegression()
-            
             outcome_model_control.fit(obs_inputs[obs_treatment == 0], obs_outcome[obs_treatment == 0])
             outcome_model_treatment.fit(obs_inputs[obs_treatment == 1], obs_outcome[obs_treatment == 1])
             self.outcome_func_dict = [outcome_model_control, outcome_model_treatment]
-            print("Outcome functions are now trained for QB. Starting bootstrap.")
-
-
-            
-            
-            
->>>>>>> 1177b35e2f1510c613324413f19c5fd8728b96fb
+            print("Outcome functions are now trained for binary QB. Starting bootstrap.")
 
         # Generate bootstrap samples using random sampling with replacement
         bootstrap_samples = [
@@ -157,9 +127,15 @@ class BootstrapSensitivityAnalysis:
 
         return self.bounds_dist
 
-    def solve_sample_bounds(self, args):
+    def solve_sample_bounds(self, args: Tuple) -> Tuple[list, list]:
         """
-        Helper function to solve for lower and upper bounds using a bootstrap sample.
+        Solves for lower and upper bounds using a bootstrap sample.
+
+        Args:
+            args (Tuple): A tuple containing sample indices, obs_inputs, obs_treatment, and obs_outcome.
+
+        Returns:
+            Tuple[list, list]: A tuple of two lists containing lower bounds and upper bounds, respectively.
         """
 
         # Unpack arguments
@@ -182,7 +158,24 @@ class BootstrapSensitivityAnalysis:
         upper_bounds = []
 
         for gamma in self.gammas:
-            if self.binary:
+            if self.sa_name == "ZSB":
+                sa_new_treatment = sa_class(
+                    obs_inputs=sample_obs_inputs,
+                    obs_treatment=sample_obs_treatment,
+                    obs_outcome=sample_obs_outcome,
+                    gamma=gamma,
+                    arm=1,
+                    e_x_func=self.e_x_func,
+                )
+                sa_new_control = sa_class(
+                    obs_inputs=sample_obs_inputs,
+                    obs_treatment=sample_obs_treatment,
+                    obs_outcome=sample_obs_outcome,
+                    gamma=gamma,
+                    arm=0,
+                    e_x_func=self.e_x_func,
+                )
+            elif self.sa_name == "QB" and self.binary:
                 sa_new_treatment = sa_class(
                     obs_inputs=sample_obs_inputs,
                     obs_treatment=sample_obs_treatment,
@@ -203,7 +196,7 @@ class BootstrapSensitivityAnalysis:
                     binary=self.binary,
                     outcome_func_dict=self.outcome_func_dict,
                 )
-            elif not self.binary and self.sa_name == "QB":
+            else:  # QB not binary
                 sa_new_treatment = sa_class(
                     obs_inputs=sample_obs_inputs,
                     obs_treatment=sample_obs_treatment,
@@ -211,9 +204,9 @@ class BootstrapSensitivityAnalysis:
                     gamma=gamma,
                     arm=1,
                     e_x_func=self.e_x_func,
+                    binary=self.binary,
                     lb_qr_func=self.kwargs_sa_treated[gamma]["lb_qr_func"],
                     ub_qr_func=self.kwargs_sa_treated[gamma]["ub_qr_func"],
-                    binary=self.binary,
                 )
                 sa_new_control = sa_class(
                     obs_inputs=sample_obs_inputs,
@@ -222,57 +215,35 @@ class BootstrapSensitivityAnalysis:
                     gamma=gamma,
                     arm=0,
                     e_x_func=self.e_x_func,
+                    binary=self.binary,
                     lb_qr_func=self.kwargs_sa_control[gamma]["lb_qr_func"],
                     ub_qr_func=self.kwargs_sa_control[gamma]["ub_qr_func"],
-                    binary=self.binary,
-                )
-            else:
-                sa_new_treatment = sa_class(
-                    obs_inputs=sample_obs_inputs,
-                    obs_treatment=sample_obs_treatment,
-                    obs_outcome=sample_obs_outcome,
-                    gamma=gamma,
-                    arm=1,
-                    e_x_func=self.e_x_func,
-<<<<<<< HEAD
-=======
-                    binary=self.binary,
-                    **self.kwargs
->>>>>>> 1177b35e2f1510c613324413f19c5fd8728b96fb
-                )
-                sa_new_control = sa_class(
-                    obs_inputs=sample_obs_inputs,
-                    obs_treatment=sample_obs_treatment,
-                    obs_outcome=sample_obs_outcome,
-                    gamma=gamma,
-                    arm=0,
-                    e_x_func=self.e_x_func,
-<<<<<<< HEAD
-=======
-                    binary=self.binary,
-                    **self.kwargs
->>>>>>> 1177b35e2f1510c613324413f19c5fd8728b96fb
                 )
             lb_new_control, ub_new_control = sa_new_control.solve_bounds()
             lb_new_treatment, ub_new_treatment = sa_new_treatment.solve_bounds()
             upper_bounds.append((gamma, ub_new_treatment - lb_new_control))
-            lower_bounds.append(((gamma, lb_new_treatment - ub_new_control)))
+            lower_bounds.append((gamma, lb_new_treatment - ub_new_control))
 
         return lower_bounds, upper_bounds
 
-    def get_all_quantile_models(self, fast=False):
+    def get_all_quantile_models(
+        self, fast: bool = False
+    ) -> Tuple[Dict[str, Dict[str, Any]], Dict[str, Dict[str, Any]]]:
+        """
+        Initializes and fits quantile regression models for both treated and control groups.
+
+        Args:
+            fast (bool): Indicates if a fast solver should be used for quantile regression.
+
+        Returns:
+            Tuple[Dict[str, Dict[str, Any]], Dict[str, Dict[str, Any]]]: A tuple of two dictionaries,
+            one for treated and one for control groups, containing the upper and lower bound quantile
+            regression functions.
+        """
+
         # Initializing dictionaries to store the models for treated and control groups.
         treated_models_dict = {}
         control_models_dict = {}
-
-        # Define model hyperparameters.
-        # kwargs = {
-        #     "n_estimators": 200,
-        #     "max_depth": 6,
-        #     "min_samples_leaf": 0.01,
-        #     "n_jobs": 1,
-        #     "random_state": self.seed,
-        # }
 
         # Iterate over gamma values.
         for gamma_value in self.gammas:

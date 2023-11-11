@@ -1,14 +1,11 @@
 from typing import Dict, Optional, Union
 
 import numpy as np
-from matplotlib import pyplot as plt
 from mlinsights.mlmodel import QuantileLinearRegression
 from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
 from sklearn.linear_model import LogisticRegression, QuantileRegressor
 from sklearn.metrics import make_scorer, mean_pinball_loss
 from sklearn.model_selection import GridSearchCV, KFold, RandomizedSearchCV
-
-# from sklearn.preprocessing import OneHotEncoder
 from statsmodels.api import QuantReg
 
 from datasets.synthetic import alpha_fn, beta_fn
@@ -24,15 +21,15 @@ PARAMS_DICT_QR = {"alpha": [0], "fit_intercept": [True, False]}
 
 def estimate_ATE_HT(x_obs, t_obs, y_obs):
     """
-    Estimate the Average Treatment Effect using the Horvitz-Thompson estimator.
+    Estimate the Average Treatment Effect (ATE) using the Horvitz-Thompson estimator.
 
     Parameters:
-    - t_obs: treatment indicators (1 for treated, 0 for control)
-    - y_obs: observed outcomes
-    - x_obs: covariates
+    x_obs (array-like): Covariates.
+    t_obs (array-like): Treatment indicators (1 for treated, 0 for control).
+    y_obs (array-like): Observed outcomes.
 
     Returns:
-    - ATE_HT: Average Treatment Effect using the Horvitz-Thompson estimator
+    float: The estimated Average Treatment Effect using the Horvitz-Thompson estimator.
     """
 
     # 1. Estimate propensity scores
@@ -140,7 +137,22 @@ def e_x_func(x):
     return (1 + np.exp(-(x * 0.75 + 0.5))) ** -1
 
 
-def adv_propensity_plus(nominal_e_x, x, y, t, gamma):
+def adv_propensity_plus(
+    nominal_e_x: float, x: np.ndarray, y: np.ndarray, t: np.ndarray, gamma: float
+) -> np.ndarray:
+    """
+    Adversarial propensity score calculation using quantile regression.
+
+    Args:
+        nominal_e_x (float): Nominal propensity score.
+        x (np.ndarray): Feature matrix for the quantile regression.
+        y (np.ndarray): Target variable for the quantile regression.
+        t (np.ndarray): Treatment indicator.
+        gamma (float): Confounding strength.
+
+    Returns:
+        np.ndarray: Adversarial propensity scores.
+    """
     alpha = alpha_fn(nominal_e_x, gamma)
     beta = beta_fn(nominal_e_x, gamma)
     a = 1 / beta
@@ -151,195 +163,16 @@ def adv_propensity_plus(nominal_e_x, x, y, t, gamma):
         return a * ind + b * (1 - ind)
 
 
-def plot_bootstrap_dist(bootstrap_dist):
-    _, ax = plt.subplots()
-    ax.hist(bootstrap_dist.bootstrap_distribution, bins=25)
-    ax.set_title("Bootstrap Distribution")
-    ax.set_xlabel("statistic value")
-    ax.set_ylabel("frequency")
-    plt.show()
-
-
-def calibrate_confound_strength(
-    x_obs, t_obs, confounder_col, wrt_confounder=False, ratio_nominal_prop=1.0, seed=50
-):
-    if wrt_confounder:
-        model = LogisticRegression(
-            C=1,
-            penalty="elasticnet",
-            solver="saga",
-            l1_ratio=0.7,
-            max_iter=10000,
-            # class_weight="balanced",
-            random_state=seed,
-        )
-        confounder = np.array(confounder_col).reshape(-1, 1)
-        model.fit(confounder, t_obs)
-        probabilities = model.predict_proba(confounder)
-
-        ratio_conf = probabilities[:, 1] / probabilities[:, 0]
-        ratio_nominal = ratio_nominal_prop
-
-    else:
-        features_no_YTC = np.array(x_obs)
-
-        # One-hot encode the confounder column
-        # encoder = OneHotEncoder(sparse_output=False)
-        # confounder_encoded = encoder.fit_transform(np.array(confounder_col).reshape(-1, 1))
-
-        # Concatenate x_obs and the one-hot encoded confounder column
-        confounder = np.array(confounder_col).reshape(-1, 1)
-        features_no_YT = np.concatenate((features_no_YTC, confounder), axis=1)
-
-        model_no_YTC = LogisticRegression(
-            C=1,
-            penalty="elasticnet",
-            solver="saga",
-            l1_ratio=0.7,
-            max_iter=10000,
-            # class_weight="balanced",
-            random_state=seed,
-        )
-        model_no_YTC.fit(features_no_YTC, t_obs)
-        probabilities_no_YTC = model_no_YTC.predict_proba(features_no_YTC)
-
-        model_no_YT = LogisticRegression(
-            C=1,
-            penalty="elasticnet",
-            solver="saga",
-            l1_ratio=0.7,
-            max_iter=10000,
-            # class_weight="balanced",
-            random_state=seed,
-        )
-        model_no_YT.fit(features_no_YT, t_obs)
-        probabilities_no_YT = model_no_YT.predict_proba(features_no_YT)
-
-        ratio_conf = probabilities_no_YT[:, 1] / probabilities_no_YT[:, 0]
-        ratio_nominal = probabilities_no_YTC[:, 1] / probabilities_no_YTC[:, 0]
-
-    indiv_conf_strng = ratio_conf / ratio_nominal
-    max_conf_strng = max(max(indiv_conf_strng), max(1 / indiv_conf_strng))
-
-    return max_conf_strng
-
-
-def calculate_all_conf_strength_combinations(confounder, features, df_loader, seed=50, **kwargs):
-    df = df_loader(conf_var=confounder, **kwargs)
-    df_no_YTC = df.drop(["Y", "T", "C"], axis=1)
-    conf_model = LogisticRegression(
-        C=1,
-        penalty="elasticnet",
-        solver="saga",
-        l1_ratio=0.7,
-        max_iter=10000,
-        # class_weight="balanced",
-        random_state=seed,
-    )
-    conf_model.fit(df_no_YTC, df["T"])
-    conf_probabilities = conf_model.predict_proba(df_no_YTC)
-    ratio_nominal_conf = conf_probabilities[:, 1] / conf_probabilities[:, 0]
-
-    df_no_YT = df.drop(["Y", "T"], axis=1)
-    full_model = LogisticRegression(
-        C=1,
-        penalty="elasticnet",
-        solver="saga",
-        l1_ratio=0.7,
-        max_iter=10000,
-        # class_weight="balanced",
-        random_state=seed,
-    )
-    full_model.fit(df_no_YT, df["T"])
-    full_probabilities = full_model.predict_proba(df_no_YT)
-    ratio_nominal = full_probabilities[:, 1] / full_probabilities[:, 0]
-
-    true_indiv_conf_strng = ratio_nominal / ratio_nominal_conf
-    true_conf_strng = max(max(true_indiv_conf_strng), max(1 / true_indiv_conf_strng))
-
-    conf_strengths = {}
-    conf_strengths[confounder] = true_conf_strng
-
-    features_excluding_confounder = [feature for feature in features if feature != confounder]
-
-    for column in features_excluding_confounder:
-        X = df_no_YTC.drop(column, axis=1)
-
-        model = LogisticRegression(
-            C=1,
-            penalty="elasticnet",
-            solver="saga",
-            l1_ratio=0.7,
-            max_iter=10000,
-            # class_weight="balanced",
-            random_state=seed,
-        )
-        model.fit(X, df["T"])
-        probabilities = model.predict_proba(X)
-        ratio_conf = probabilities[:, 1] / probabilities[:, 0]
-        indiv_conf_strng = ratio_nominal_conf / ratio_conf
-        max_conf_strng = max(max(indiv_conf_strng), max(1 / indiv_conf_strng))
-
-        conf_strengths[column] = max_conf_strng
-
-    features_larger_than_conf_strng = [
-        feature for feature, value in conf_strengths.items() if value > conf_strengths[confounder]
-    ]
-    num_larger_strngs_confounder = len(features_larger_than_conf_strng)
-    proportion_features_larger_than_conf_strng = num_larger_strngs_confounder / len(
-        features_excluding_confounder
-    )  # type: ignore
-
-    print(
-        f"For {confounder}, proportion of features with larger conf_strengths: {proportion_features_larger_than_conf_strng}"
-    )
-    print(f"Features with larger conf_strengths: {features_larger_than_conf_strng}")
-
-    return conf_strengths, proportion_features_larger_than_conf_strng
-
-
-def calculate_conf_strength(features, df_loader, seed=50, **kwargs):
-    conf_strengths = {}
-
-    for confounder in features:
-        df = df_loader(conf_var=confounder, **kwargs)
-        df_no_YTC = df.drop(["Y", "T", "C"], axis=1)
-        conf_model = LogisticRegression(
-            C=1,
-            penalty="elasticnet",
-            solver="saga",
-            l1_ratio=0.7,
-            max_iter=10000,
-            # class_weight="balanced",
-            random_state=seed,
-        )
-        conf_model.fit(df_no_YTC, df["T"])
-        conf_probabilities = conf_model.predict_proba(df_no_YTC)
-        ratio_nominal_conf = conf_probabilities[:, 1] / conf_probabilities[:, 0]
-
-        df_no_YT = df.drop(["Y", "T"], axis=1)
-        full_model = LogisticRegression(
-            C=1,
-            penalty="elasticnet",
-            solver="saga",
-            l1_ratio=0.7,
-            max_iter=10000,
-            # class_weight="balanced",
-            random_state=seed,
-        )
-        full_model.fit(df_no_YT, df["T"])
-        full_probabilities = full_model.predict_proba(df_no_YT)
-        ratio_nominal = full_probabilities[:, 1] / full_probabilities[:, 0]
-
-        true_indiv_conf_strng = ratio_nominal / ratio_nominal_conf
-        true_conf_strng = max(max(true_indiv_conf_strng), max(1 / true_indiv_conf_strng))
-
-        conf_strengths[confounder] = true_conf_strng
-
-    return conf_strengths
-
-
 class CATEEstimator:
+    """
+    Causal inference model for estimating the Conditional Average Treatment Effect (CATE).
+
+    Attributes:
+        propensity_estimator (LogisticRegression): Model for estimating propensity scores.
+        outcome0_rf (RandomForestRegressor): Random forest model for outcome estimation when treatment is not applied.
+        outcome1_rf (RandomForestRegressor): Random forest model for outcome estimation when treatment is applied.
+    """
+
     def __init__(self, seed=50):
         self.propensity_estimator = LogisticRegression(
             C=1,

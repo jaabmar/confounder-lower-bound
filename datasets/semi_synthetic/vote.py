@@ -26,7 +26,7 @@ def load_vote_data(
     cat_covar_columns = copy(CAT_COVAR_VOTE)
     num_covar_columns = copy(NUM_COVAR_VOTE)
     all_covar_columns = cat_covar_columns + num_covar_columns
-    if conf_var != "":
+    if conf_var is not None:
         if conf_var in all_covar_columns:
             all_covar_columns.remove(conf_var)
         if conf_var in num_covar_columns:
@@ -35,7 +35,7 @@ def load_vote_data(
             cat_covar_columns.remove(conf_var)
 
     X_all = vote_data[all_covar_columns].fillna(-1).values
-    if conf_var != "":
+    if conf_var is not None:
         confounder = vote_data[conf_var].values
     else:
         confounder = None

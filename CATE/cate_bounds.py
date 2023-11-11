@@ -7,11 +7,7 @@ from quantile_forest import RandomForestQuantileRegressor
 from sklearn import clone
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LogisticRegression
-<<<<<<< HEAD
 from xgboost import XGBClassifier, XGBRegressor
-=======
-from quantile_forest import RandomForestQuantileRegressor
->>>>>>> 1177b35e2f1510c613324413f19c5fd8728b96fb
 
 from CATE.BLearner.models.blearner.BLearner import (
     BinaryCATEBLearner,
@@ -76,9 +72,7 @@ class MultipleCATEBoundEstimators:
         end_time = time.time()
         elapsed_time = end_time - start_time
 
-        print(
-            f"All CATE bounds estimators are now trained. Elapsed time: {elapsed_time:.2f} seconds"
-        )
+        print(f"All CATE bounds estimators are now trained. Elapsed time: {elapsed_time:.2f} seconds")
 
 
 class _BaseBoundsEstimator:
@@ -101,9 +95,7 @@ class _BaseBoundsEstimator:
         """
         return self.user_conf / (1 + self.user_conf)
 
-    def fit(
-        self, x_obs: np.ndarray, t_obs: np.ndarray, y_obs: np.ndarray, sample_weight: bool = False
-    ):
+    def fit(self, x_obs: np.ndarray, t_obs: np.ndarray, y_obs: np.ndarray, sample_weight: bool = False):
         """
         Fit the estimator model on the provided data.
 
@@ -142,9 +134,7 @@ class _BaseBoundsEstimator:
         mean_lb, mean_ub = float(np.mean(lower_bounds)), float(np.mean(upper_bounds))
         return mean_lb, mean_ub
 
-    def estimate_bootstrap_variances(
-        self, x_rct: np.ndarray, n_bootstrap: Optional[int] = None
-    ) -> tuple[float, float]:
+    def estimate_bootstrap_variances(self, x_rct: np.ndarray, n_bootstrap: Optional[int] = None) -> tuple[float, float]:
         """
         Estimate the bootstrap variances for the provided treatment covariate data.
 
@@ -156,7 +146,9 @@ class _BaseBoundsEstimator:
             tuple[float, float]: The bootstrap variances of the bounds
         """
         n_boots = n_bootstrap if n_bootstrap is not None else self.n_bootstrap
-        var_lb, var_ub, quantile_lb, quantile_ub  = compute_bootstrap_variances_cate_bounds(self.bounds_est, x_rct, n_boots)
+        var_lb, var_ub, quantile_lb, quantile_ub = compute_bootstrap_variances_cate_bounds(
+            self.bounds_est, x_rct, n_boots
+        )
         return var_lb, var_ub, quantile_lb, quantile_ub
 
 
@@ -206,12 +198,9 @@ class CATEBoundsEstimator(_BaseBoundsEstimator):
                     max_depth=6,
                     min_samples_leaf=0.01,
                     n_jobs=-2,
-<<<<<<< HEAD
                     default_quantiles=[self._compute_tau()],
-=======
->>>>>>> 1177b35e2f1510c613324413f19c5fd8728b96fb
                     random_state=seed,
-                    default_quantiles=[self._compute_tau()]
+                    default_quantiles=[self._compute_tau()],
                 )
                 if quantile_upper is None
                 else quantile_upper
@@ -223,12 +212,9 @@ class CATEBoundsEstimator(_BaseBoundsEstimator):
                     max_depth=6,
                     min_samples_leaf=0.01,
                     n_jobs=-2,
-<<<<<<< HEAD
                     default_quantiles=[1 - self._compute_tau()],
-=======
->>>>>>> 1177b35e2f1510c613324413f19c5fd8728b96fb
                     random_state=seed,
-                    default_quantiles=[1-self._compute_tau()]
+                    default_quantiles=[1 - self._compute_tau()],
                 )
                 if quantile_lower is None
                 else quantile_lower
@@ -259,16 +245,9 @@ class CATEBoundsEstimator(_BaseBoundsEstimator):
 
         else:
             mu_model = (
-<<<<<<< HEAD
                 XGBClassifier(
                     n_estimators=300,
                     max_depth=6,
-=======
-                RandomForestRegressor(
-                    n_estimators=1000,
-                    max_depth=10,
-                    min_samples_leaf=0.01,
->>>>>>> 1177b35e2f1510c613324413f19c5fd8728b96fb
                     n_jobs=-2,
                     random_state=seed,
                 )
@@ -277,16 +256,9 @@ class CATEBoundsEstimator(_BaseBoundsEstimator):
             )
 
             bounds_model = (
-<<<<<<< HEAD
                 XGBRegressor(
                     n_estimators=300,
                     max_depth=6,
-=======
-                RandomForestRegressor(
-                    n_estimators=200,
-                    max_depth=10,
-                    min_samples_leaf=0.01,
->>>>>>> 1177b35e2f1510c613324413f19c5fd8728b96fb
                     n_jobs=-2,
                     random_state=seed,
                 )
@@ -303,9 +275,7 @@ class CATEBoundsEstimator(_BaseBoundsEstimator):
                 cv=cv,
             )
 
-        super().__init__(
-            bounds_est=self.phi_bounds_est, user_conf=user_conf, n_bootstrap=n_bootstrap
-        )
+        super().__init__(bounds_est=self.phi_bounds_est, user_conf=user_conf, n_bootstrap=n_bootstrap)
 
 
 class PhiBoundsEstimator(_BaseBoundsEstimator):
@@ -457,13 +427,9 @@ def construct_blearner(gamma, seed=50):
     tau = gamma / (1 + gamma)
 
     # Propensity model
-    propensity_model = LogisticRegression(
-        C=1, penalty="elasticnet", solver="saga", l1_ratio=0.7, max_iter=10000
-    )
+    propensity_model = LogisticRegression(C=1, penalty="elasticnet", solver="saga", l1_ratio=0.7, max_iter=10000)
     # Outcome model
-    mu_model = RandomForestRegressor(
-        n_estimators=300, min_samples_leaf=0.01, max_depth=6, random_state=seed
-    )
+    mu_model = RandomForestRegressor(n_estimators=300, min_samples_leaf=0.01, max_depth=6, random_state=seed)
     # Quantiles
     quantile_model_upper = RandomForestQuantileRegressor(
         n_estimators=300, min_samples_leaf=0.01, max_depth=6, default_quantiles=[tau]
@@ -472,16 +438,12 @@ def construct_blearner(gamma, seed=50):
         n_estimators=300, min_samples_leaf=0.01, max_depth=6, default_quantiles=[1 - tau]
     )
     # CVaR model
-    cvar_model_upper = KernelSuperquantileRegressor(
-        kernel=RFKernel(clone(mu_model, safe=False)), tau=tau, tail="right"
-    )
+    cvar_model_upper = KernelSuperquantileRegressor(kernel=RFKernel(clone(mu_model, safe=False)), tau=tau, tail="right")
     cvar_model_lower = KernelSuperquantileRegressor(
         kernel=RFKernel(clone(mu_model, safe=False)), tau=1 - tau, tail="left"
     )
     # Bounds model
-    cate_bounds_model = RandomForestRegressor(
-        n_estimators=300, min_samples_leaf=0.01, max_depth=6, random_state=seed
-    )
+    cate_bounds_model = RandomForestRegressor(n_estimators=300, min_samples_leaf=0.01, max_depth=6, random_state=seed)
     # BLearner estimator
     BLearner_est = BLearner(
         propensity_model=propensity_model,

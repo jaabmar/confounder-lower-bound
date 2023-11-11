@@ -22,7 +22,7 @@ NUM_COVAR_STAR = []
 
 
 def load_star_data(
-    conf_var: str = "g1surban",
+    conf_var: Optional[str] = "g1surban",
     support_var: str = "g1surban",
     analyze_dataset: bool = True,
     split_data: bool = True,
@@ -38,18 +38,14 @@ def load_star_data(
     outcome_and_treatment_filter = treatment_filter & outcome_filter
 
     cat_covar_columns = copy(CAT_COVAR_STAR)
-    if conf_var != "":
+    if conf_var is not None:
         assert conf_var in cat_covar_columns
         cat_covar_columns.remove(conf_var)
     Y_columns = ["g1treadss", "g1tmathss", "g1tlistss"]
 
     T_all = star_data.g1classtype[outcome_and_treatment_filter].values
     filtered_indices = T_all != 3
-    X_all = (
-        star_data[cat_covar_columns][outcome_and_treatment_filter]
-        .fillna(0)
-        .values[filtered_indices]
-    )
+    X_all = star_data[cat_covar_columns][outcome_and_treatment_filter].fillna(0).values[filtered_indices]
 
     Y_cols = star_data[Y_columns][outcome_and_treatment_filter].values[filtered_indices]
 
@@ -58,10 +54,8 @@ def load_star_data(
 
     Y_all = np.sum(Y_cols, axis=1) / 3
 
-    if conf_var != "":
-        confounder = (
-            star_data[conf_var][outcome_and_treatment_filter].fillna(0).values[filtered_indices]
-        )
+    if conf_var is not None:
+        confounder = star_data[conf_var][outcome_and_treatment_filter].fillna(0).values[filtered_indices]
         if conf_var == "g1surban":
             confounder[np.logical_or(confounder == 1, confounder == 3)] = 0
             confounder[np.logical_or(confounder == 2, confounder == 4)] = 1
@@ -77,7 +71,7 @@ def load_star_data(
     data.update(X_df)
 
     df = pd.DataFrame(data)
-    if analyze_dataset and conf_var != "":
+    if analyze_dataset and conf_var is not None:
         dataset_checks(df)
         analyze_data(df, fit_xgboost=True)
         print()

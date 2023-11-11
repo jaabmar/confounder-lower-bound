@@ -12,11 +12,11 @@ class ZSBSensitivityAnalysis:
     Class for conducting sensitivity analysis using Convex Optimization (Zhao et al.)
 
     Args:
-        obs_inputs (np.ndarray): 2D array containing the input data.
-        obs_treatment (np.ndarray): 1D array containing the treatment status for each observation.
-        obs_outcome (np.ndarray): 1D array containing the outcome for each observed individual.
+        obs_inputs (np.ndarray): array containing the input data.
+        obs_treatment (np.ndarray): array containing the treatment status for each observation.
+        obs_outcome (np.ndarray): array containing the outcome for each observed individual.
         e_x_func (Callable): true propensity score function.
-        gamma (float): parameter used in bound calculation.
+        gamma (float): confounding strength.
 
     Methods:
         solve_bounds(): solves for the lower and upper bounds.
@@ -30,7 +30,6 @@ class ZSBSensitivityAnalysis:
         gamma: float,
         arm: int,
         e_x_func: Optional[Callable[..., np.ndarray]] = None,
-        **kwargs,
     ) -> None:
         self.obs_inputs = obs_inputs
         self.obs_treatment = obs_treatment
@@ -39,18 +38,13 @@ class ZSBSensitivityAnalysis:
         self.arm = arm
         # Compute propensity score if not given
         if e_x_func is None:
-<<<<<<< HEAD
             clf = LogisticRegression(
                 C=1,
                 penalty="elasticnet",
                 solver="saga",
                 l1_ratio=0.7,
                 max_iter=10000,
-                # class_weight="balanced",
             )
-=======
-            clf = LogisticRegression()
->>>>>>> 1177b35e2f1510c613324413f19c5fd8728b96fb
             clf.fit(obs_inputs, obs_treatment)
             self.e_x = clf.predict_proba(obs_inputs)[:, 1]
         else:
@@ -60,13 +54,9 @@ class ZSBSensitivityAnalysis:
 
         self.n_obs_t = (obs_treatment == self.arm).sum()
         if self.arm == 1:
-            self.p = (1 - self.e_x[obs_treatment == self.arm]) / self.e_x[
-                obs_treatment == self.arm
-            ]
+            self.p = (1 - self.e_x[obs_treatment == self.arm]) / self.e_x[obs_treatment == self.arm]
         else:
-            self.p = self.e_x[obs_treatment == self.arm] / (
-                1 - self.e_x[obs_treatment == self.arm]
-            )
+            self.p = self.e_x[obs_treatment == self.arm] / (1 - self.e_x[obs_treatment == self.arm])
 
         self.k = self.p * obs_outcome[obs_treatment == self.arm]
         self.o = obs_outcome[obs_treatment == self.arm].sum()

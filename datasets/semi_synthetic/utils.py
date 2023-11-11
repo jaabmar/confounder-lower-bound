@@ -96,9 +96,7 @@ def analyze_data(df, fit_xgboost=False, return_top_k_features=None):
             else:  # continuous Y
                 if len(np.unique(X)) == 2:  # binary X
                     pearson, p_value = pearsonr(X, Y)
-                    print(
-                        f"Comparing {col_name} with Y: Corr(X, Y) =", pearson, "P-value =", p_value
-                    )
+                    print(f"Comparing {col_name} with Y: Corr(X, Y) =", pearson, "P-value =", p_value)
 
                 else:  # categorical X
                     grouped_Y = [Y[X == category] for category in np.unique(X)]
@@ -145,20 +143,12 @@ def split_dataset(
         support_feature_values = [1, 2]
 
     # Perform train-test split with probability q
-    full_support_df, reduced_support_df = train_test_split(
-        df, test_size=1 - proportion_full_support, random_state=seed
-    )
+    full_support_df, reduced_support_df = train_test_split(df, test_size=1 - proportion_full_support, random_state=seed)
 
     # Keep only the points with specific values of support_feature_values in reduced_support_df
-    final_reduced_support_df = reduced_support_df[
-        reduced_support_df[support_feature].isin(support_feature_values)
-    ]
-    excluded_datapoints = reduced_support_df[
-        ~reduced_support_df[support_feature].isin(support_feature_values)
-    ]
+    final_reduced_support_df = reduced_support_df[reduced_support_df[support_feature].isin(support_feature_values)]
+    excluded_datapoints = reduced_support_df[~reduced_support_df[support_feature].isin(support_feature_values)]
 
     final_full_support_df = pd.concat([full_support_df, excluded_datapoints])
 
-    return final_full_support_df.reset_index(drop=True), final_reduced_support_df.reset_index(
-        drop=True
-    )
+    return final_full_support_df.reset_index(drop=True), final_reduced_support_df.reset_index(drop=True)

@@ -11,9 +11,7 @@ from CATE.BLearner.models.blearner.BLearner import (
 )
 
 
-def compute_bootstrap_variance(
-    Y: np.ndarray, T: np.ndarray, n_bootstraps: int, arm: Optional[int] = None
-) -> float:
+def compute_bootstrap_variance(Y: np.ndarray, T: np.ndarray, n_bootstraps: int, arm: Optional[int] = None) -> float:
     """
     Computes the bootstrap variance estimate of the mean of Y where T == arm or the ATE.
 
@@ -21,6 +19,7 @@ def compute_bootstrap_variance(
         Y (numpy.ndarray): The array of outputs.
         T (numpy.ndarray): The array indicating which observations to select (0 or 1).
         n_bootstraps (int): The number of bootstrap resampling iterations.
+        arm (Optional[int]): Compute variance for the treated (1) or control (0) group. None for the CATE.
 
     Returns:
         float: The bootstrap variance estimate.
@@ -52,7 +51,7 @@ def compute_bootstrap_variance(
 
 
 def compute_bootstrap_variances_cate_bounds(
-    phi_bounds_est: Union[PhiBLearner, BinaryPhiBLearner, BLearner, BinaryCATEBLearner],
+    bounds_est: Union[PhiBLearner, BinaryPhiBLearner, BLearner, BinaryCATEBLearner],
     x_rct: np.ndarray,
     n_bootstraps: int,
 ) -> Tuple[float, float]:
@@ -60,7 +59,7 @@ def compute_bootstrap_variances_cate_bounds(
     Estimates the bootstrap variances of upper and lower bounds means.
 
     Args:
-        phi_bounds_est (callable): Function that calculates upper and lower bounds for a given dataset.
+        bounds_est (callable): Function that calculates upper and lower bounds for a given dataset.
         x_rct (np.ndarray): The RCT dataset.
         n_bootstraps (int): Number of bootstrap samples to generate.
 
@@ -75,14 +74,14 @@ def compute_bootstrap_variances_cate_bounds(
     lower_bounds_mean_list = []
     for _ in range(n_bootstraps):
         bootstrap_indices = np.random.choice(n_samples, size=n_samples, replace=True)
-        lower_bounds, upper_bounds = phi_bounds_est.effect(x_rct[bootstrap_indices])
+        lower_bounds, upper_bounds = bounds_est.effect(x_rct[bootstrap_indices])
         upper_bounds_mean_list.append(np.mean(upper_bounds))
         lower_bounds_mean_list.append(np.mean(lower_bounds))
 
     # Calculate the bootstrap variances of the upper and lower bounds means
     upper_mean_variance = np.var(upper_bounds_mean_list)
     lower_mean_variance = np.var(lower_bounds_mean_list)
-    lower_quantile = np.min(lower_bounds_mean_list) #TODO now its hard-coded, should be a parameter
+    lower_quantile = np.min(lower_bounds_mean_list)
     upper_quantile = np.max(upper_bounds_mean_list)
 
     return float(lower_mean_variance), float(upper_mean_variance), lower_quantile, upper_quantile
@@ -95,7 +94,7 @@ def resample_and_calculate_mean(Y: np.ndarray, T: np.ndarray, arm: Optional[int]
     Args:
         Y (numpy.ndarray): The array of outputs.
         T (numpy.ndarray): The array indicating which observations to select (0 or 1).
-        n (int): The number of observations.
+        arm (Optional[int]): Compute variance for the treated (1) or control (0) group. None for the CATE.
 
     Returns:
         float: The mean of Y where T == arm or the ATE for the resampled data.
@@ -112,8 +111,6 @@ def resample_and_calculate_mean(Y: np.ndarray, T: np.ndarray, arm: Optional[int]
     if arm is not None:
         mean_resampled = float(np.mean(Y_resampled[T_resampled == arm]))
     else:
-        mean_resampled = float(
-            np.mean(Y_resampled[T_resampled == 1]) - np.mean(Y_resampled[T_resampled == 0])
-        )
+        mean_resampled = float(np.mean(Y_resampled[T_resampled == 1]) - np.mean(Y_resampled[T_resampled == 0]))
 
     return mean_resampled

@@ -9,15 +9,14 @@ from utils_evaluate import get_quantile_regressor
 
 class QBSensitivityAnalysis:
     """
-    Class for conducting sharp sensitivity analysis for IPW via quantile balancing
-    using Convex Optimization (Dorn et al.) to compute bounds.
+    Class for conducting sharp sensitivity analysis for IPW via quantile balancing (Dorn et al.).
 
     Args:
-        obs_inputs (np.ndarray): 2D array containing the input data.
-        obs_treatment (np.ndarray): 1D array containing the treatment status for each observation.
-        obs_outcome (np.ndarray): 1D array containing the outcome for each observed individual.
+        obs_inputs (np.ndarray): array containing the input data.
+        obs_treatment (np.ndarray): array containing the treatment status for each observation.
+        obs_outcome (np.ndarray): array containing the outcome for each observed individual.
         e_x_func (Callable): true propensity score function.
-        gamma (float): parameter used in bound calculation.
+        gamma (float): confounding strength.
 
     Methods:
         solve_bounds(): solves for the lower and upper bounds.
@@ -32,7 +31,8 @@ class QBSensitivityAnalysis:
         gamma: float,
         arm: int,
         binary: bool = False,
-        qr_funcs: Optional[Callable[..., np.ndarray]] = None,
+        lb_qr_func: Optional[Callable[..., np.ndarray]] = None,
+        ub_qr_func: Optional[Callable[..., np.ndarray]] = None,
         e_x_func: Optional[Callable[..., np.ndarray]] = None,
         outcome_func_dict: Optional[dict] = None,
     ) -> None:
@@ -43,7 +43,6 @@ class QBSensitivityAnalysis:
         self.gamma = gamma
         self.tau = gamma / (gamma + 1)
         self.binary = binary
-<<<<<<< HEAD
         if ub_qr_func is None and not binary:
             self.ub_qr_func = get_quantile_regressor(
                 obs_inputs[obs_treatment == arm],
@@ -61,11 +60,7 @@ class QBSensitivityAnalysis:
             self.ub_qr_func = ub_qr_func
             self.lb_qr_func = lb_qr_func
 
-=======
->>>>>>> 1177b35e2f1510c613324413f19c5fd8728b96fb
         self.arm = arm
-        self.qr_funcs = qr_funcs
-
 
         # Compute propensity score if not given
         if e_x_func is None:
@@ -75,7 +70,6 @@ class QBSensitivityAnalysis:
                 solver="saga",
                 l1_ratio=0.7,
                 max_iter=10000,
-                # class_weight="balanced",
             )
             logreg.fit(obs_inputs, obs_treatment)
             self.e_x = logreg.predict_proba(obs_inputs)[:, 1]
@@ -85,24 +79,10 @@ class QBSensitivityAnalysis:
         if self.arm == 0:
             self.e_x = 1 - self.e_x
 
-        # Compute constants
-
-        self.tau = gamma / (gamma + 1)
         if not binary:
-<<<<<<< HEAD
-            self.lb_g_x = self.lb_qr_func.predict(obs_inputs[obs_treatment == self.arm]).reshape(
-                -1, 1
-            )
-            self.ub_g_x = self.ub_qr_func.predict(obs_inputs[obs_treatment == self.arm]).reshape(
-                -1, 1
-            )
-=======
-            self.lb_g_x = self.qr_funcs[self.arm].predict(obs_inputs[obs_treatment == self.arm], quantiles=[1-self.tau]).reshape(-1, 1)
-            self.ub_g_x = self.qr_funcs[self.arm].predict(obs_inputs[obs_treatment == self.arm], quantiles=[self.tau]).reshape(-1, 1)
->>>>>>> 1177b35e2f1510c613324413f19c5fd8728b96fb
-            self.weights = (1 - self.e_x[obs_treatment == self.arm]) / self.e_x[
-                obs_treatment == self.arm
-            ]
+            self.lb_g_x = self.lb_qr_func.predict(obs_inputs[obs_treatment == self.arm]).reshape(-1, 1)
+            self.ub_g_x = self.ub_qr_func.predict(obs_inputs[obs_treatment == self.arm]).reshape(-1, 1)
+            self.weights = (1 - self.e_x[obs_treatment == self.arm]) / self.e_x[obs_treatment == self.arm]
         else:
             self.outcome_func = outcome_func_dict[self.arm]
 
@@ -117,13 +97,8 @@ class QBSensitivityAnalysis:
         """
 
         if self.binary:
-<<<<<<< HEAD
             q_min = (self.outcome_func.predict(self.obs_inputs) > self.tau).astype(int)
             q_plus = (self.outcome_func.predict(self.obs_inputs) > 1 - self.tau).astype(int)
-=======
-            q_min = (self.outcome_func.predict_proba(self.obs_inputs)[:,1] > self.tau).astype(int)
-            q_plus = (self.outcome_func.predict_proba(self.obs_inputs)[:,1] > 1-self.tau).astype(int)
->>>>>>> 1177b35e2f1510c613324413f19c5fd8728b96fb
             self.obs_outcome = self.obs_outcome.astype(int)
 
             if self.arm == 1:
@@ -131,23 +106,13 @@ class QBSensitivityAnalysis:
                     q_plus * self.obs_treatment / self.e_x
                     + (self.obs_outcome - q_plus)
                     * self.obs_treatment
-                    * (
-                        1
-                        + (1 - self.e_x)
-                        / self.e_x
-                        * self.gamma ** (np.sign(self.obs_outcome - q_plus))
-                    )
+                    * (1 + (1 - self.e_x) / self.e_x * self.gamma ** (np.sign(self.obs_outcome - q_plus)))
                 ).mean()
                 lb = (
                     q_min * self.obs_treatment / self.e_x
                     + (self.obs_outcome - q_min)
                     * self.obs_treatment
-                    * (
-                        1
-                        + (1 - self.e_x)
-                        / self.e_x
-                        * self.gamma ** (-np.sign(self.obs_outcome - q_min))
-                    )
+                    * (1 + (1 - self.e_x) / self.e_x * self.gamma ** (-np.sign(self.obs_outcome - q_min)))
                 ).mean()
 
             else:
@@ -155,34 +120,20 @@ class QBSensitivityAnalysis:
                     q_plus * (1 - self.obs_treatment) / self.e_x
                     + (self.obs_outcome - q_plus)
                     * (1 - self.obs_treatment)
-                    * (
-                        1
-                        + (1 - self.e_x)
-                        / self.e_x
-                        * self.gamma ** (np.sign(self.obs_outcome - q_plus))
-                    )
+                    * (1 + (1 - self.e_x) / self.e_x * self.gamma ** (np.sign(self.obs_outcome - q_plus)))
                 ).mean()
                 lb = (
                     q_min * (1 - self.obs_treatment) / self.e_x
                     + (self.obs_outcome - q_min)
                     * (1 - self.obs_treatment)
-                    * (
-                        1
-                        + (1 - self.e_x)
-                        / self.e_x
-                        * self.gamma ** (-np.sign(self.obs_outcome - q_min))
-                    )
+                    * (1 + (1 - self.e_x) / self.e_x * self.gamma ** (-np.sign(self.obs_outcome - q_min)))
                 ).mean()
 
         else:
             # Compute bounds
-            lb = -self.compute_closed_form_bounds(
-                self.lb_g_x, -self.obs_outcome[self.obs_treatment == self.arm]
-            )
+            lb = -self.compute_closed_form_bounds(self.lb_g_x, -self.obs_outcome[self.obs_treatment == self.arm])
 
-            ub = self.compute_closed_form_bounds(
-                self.ub_g_x, self.obs_outcome[self.obs_treatment == self.arm]
-            )
+            ub = self.compute_closed_form_bounds(self.ub_g_x, self.obs_outcome[self.obs_treatment == self.arm])
 
         return (lb, ub)
 
@@ -196,7 +147,7 @@ class QBSensitivityAnalysis:
         Returns:
             The computed lower/upper bound.
         """
-        quant_reg = QuantileLinearRegression(quantile=self.tau, max_iter=100)
+        quant_reg = QuantileLinearRegression(quantile=self.tau, max_iter=1000)
 
         # Fit  quantile regressor
         quant_reg.fit(g_x, target, sample_weight=self.weights)

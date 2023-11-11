@@ -1,0 +1,26 @@
+{
+    "python.linting.flake8Args": [
+        "--ignore=E201"
+    ],
+    "python.formatting.provider": "black",
+    "editor.formatOnSave": true,
+    "python.formatting.blackArgs": [
+        "--line-length=120"
+    ],
+    "python.linting.pylintEnabled": true,
+    "python.linting.lintOnSave": true,
+    "isort.args": [
+        "--profile",
+        "black"
+    ],
+    "[python]": {
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": true
+        }
+    },
+    "flake8.args": [
+        "--max-line-length=125",
+        "--ignore=E203",
+        "--ignore=W503"
+    ],
+}
