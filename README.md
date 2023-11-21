@@ -17,11 +17,25 @@ This repository contains the Python implementation of [Hidden yet quantifiable: 
 
 ## Overview
 
+Certainly, here's a revised version with a bit more technical detail while maintaining clarity:
+
+## Overview
+
+This repository implements the methods from the paper "Hidden yet quantifiable: A lower bound for confounding strength using randomized trials." This tool is designed for researchers in the field of epidemiology, enabling them to assess and quantify the impact of unobserved confounders in observational studies. Unobserved confounders are variables that are not measured or accounted for in a study, but can significantly influence its outcomes, leading to biased results.
+
+Our approach has two key components:
+
+1. **Detection Test**: It includes a statistical test to detect the presence of unobserved confounders that have an impact beyond a certain threshold. This is crucial for verifying the validity of the study's conclusions.
+
+2. **Lower Bound Estimation**: The tool estimates a lower bound for the strength of the unobserved confounding. This estimation helps in understanding the extent to which these hidden variables could be influencing the study results.
+
+In the context of post-marketing surveillance, where researchers have access to both randomized trial data and observational datasets, our tool becomes particularly valuable. It allows for a more rigorous analysis of the treatment's effectiveness and safety by quantifying the potential biases due to unobserved confounders.
+
 <p align="center">
-<img align="middle" src="motivating_example.png"  alt="An illustrative example of the drug regulatory process: our lower bound allows taking proactive measures to address the unobserved confounding problem."/>
+  <img src="motivating_example.png" alt="An illustrative example of the drug regulatory process: our lower bound allows taking proactive measures to address the unobserved confounding problem."/>
 </p>
 
-Provide a more in-depth paragraph about your project. What does it do? What problem does it solve? Why is this project useful? (TODO)
+As depicted in the image above, the application of our methodology in the drug regulatory process enables a more informed and accurate assessment of medical treatments. By providing a way to quantify the influence of unobserved confounders, our tool aids in refining the conclusions drawn from observational studies, thus enhancing the reliability of clinical research and decision-making in patient care.
 
 ## Getting Started
 
@@ -62,16 +76,10 @@ pip install git+https://github.com/jaabmar/confounder-lower-bound.git
 Example of using the package:
 
 ```bash
-import numpy as np
-from scipy.stats import bootstrap
-from sklearn.ensemble import RandomForestClassifier
-
-from test_confounding.ATE.ate_bounds import BootstrapSensitivityAnalysis
 from test_confounding.CATE.cate_bounds import MultipleCATEBoundEstimators
 from test_confounding.CATE.utils_cate_test import compute_bootstrap_variance
 from test_confounding.datasets import synthetic
 from test_confounding.test import run_multiple_cate_hypothesis_test
-from test_confounding.utils_evaluate import e_x_func
 
 data = synthetic.Synthetic(
         num_examples_obs =  5000,
@@ -79,7 +87,7 @@ data = synthetic.Synthetic(
         gamma_star = 10.0,
         effective_conf = 1.0,
         sigma_y = 0.01,
-        seed=42,    
+        seed = 42,    
 )
 
 x_rct, t_rct, y_rct = (
@@ -95,10 +103,10 @@ x_obs, t_obs, y_obs = (
 )
 
 ate = y_rct[t_rct == 1].mean() - y_rct[t_rct == 0].mean()
-ate_variance = compute_bootstrap_variance(Y=y_rct, T=t_rct, n_bootstraps=50, arm=None)
+ate_variance = compute_bootstrap_variance(Y = y_rct, T = t_rct, n_bootstraps = 50, arm = None)
 
 bounds_estimator = MultipleCATEBoundEstimators(
-    gammas=[1.0, 3.0, 5.0, 7.0, 9.0, 11.0], n_bootstrap=50
+    gammas = [1.0, 3.0, 5.0, 7.0, 9.0, 11.0], n_bootstrap = 50
 )
 
 bounds_estimator.fit(x_obs=x_obs, t_obs=t_obs, y_obs=y_obs)
