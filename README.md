@@ -17,10 +17,6 @@ This repository contains the Python implementation of [Hidden yet quantifiable: 
 
 ## Overview
 
-Certainly, here's a revised version with a bit more technical detail while maintaining clarity:
-
-## Overview
-
 This repository implements the methods from the paper "Hidden yet quantifiable: A lower bound for confounding strength using randomized trials." This tool is designed for researchers in the field of epidemiology, enabling them to assess and quantify the impact of unobserved confounders in observational studies. Unobserved confounders are variables that are not measured or accounted for in a study, but can significantly influence its outcomes, leading to biased results.
 
 Our approach has two key components:
