@@ -27,8 +27,6 @@ Provide a more in-depth paragraph about your project. What does it do? What prob
 
 ### Dependencies
 
-List with the necessary dependencies for your project:
-
 - Python 3.11.5
 - Numpy 1.24.3
 - Scipy 1.10.1
@@ -76,9 +74,9 @@ from test_confounding.test import run_multiple_cate_hypothesis_test
 from test_confounding.utils_evaluate import e_x_func
 
 data = synthetic.Synthetic(
-        num_examples_obs =  20000,
-        num_examples_rct = 5000,
-        gamma_star = 5.0,
+        num_examples_obs =  5000,
+        num_examples_rct = 1000,
+        gamma_star = 10.0,
         effective_conf = 1.0,
         sigma_y = 0.01,
         seed=42,    
@@ -97,15 +95,15 @@ x_obs, t_obs, y_obs = (
 )
 
 ate = y_rct[t_rct == 1].mean() - y_rct[t_rct == 0].mean()
-ate_variance = compute_bootstrap_variance(Y=y_rct, T=t_rct, n_bootstraps=n_bootstrap, arm=None)
+ate_variance = compute_bootstrap_variance(Y=y_rct, T=t_rct, n_bootstraps=50, arm=None)
 
 bounds_estimator = MultipleCATEBoundEstimators(
-    gammas=user_conf, n_bootstrap=n_bootstrap
+    gammas=[1.0, 3.0, 5.0, 7.0, 9.0, 11.0], n_bootstrap=50
 )
 
 bounds_estimator.fit(x_obs=x_obs, t_obs=t_obs, y_obs=y_obs)
 
-results_dict_cate = run_multiple_cate_hypothesis_test(bounds_estimator = bounds_estimator, ate = ate, ate_variance = ate_variance, alpha = 5.0, x_rct = x_rct, user_conf = user_conf, verbose = False)
+results_dict_cate = run_multiple_cate_hypothesis_test(bounds_estimator = bounds_estimator, ate = ate, ate_variance = ate_variance, alpha = 5.0, x_rct = x_rct, user_conf = [1.0, 3.0, 5.0, 7.0, 9.0, 11.0], verbose = False)
 ```
 
 For detailed tutorials with synthetic and semi-synthetic data, refer to [Tutorial (Part 1)](src/synthetic.ipynb) and [Tutorial (Part 2)](src/semi_synthetic.ipynb).
@@ -122,7 +120,7 @@ We welcome contributions to improve this project. Here's how you can contribute:
 
 ## License
 
-This project is licensed under the MIT License - see the `LICENSE` file for details.
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
 
 ## Contact
 
