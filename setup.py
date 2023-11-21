@@ -12,7 +12,7 @@ setup(
     description="Python implementation of the testing procedures introduced in the paper: Hidden yet quantifiable: A lower bound for confounding strength using randomized trials",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/jaabmar/confounding-lower-bound",
+    url="https://github.com/jaabmar/confounder-lower-bound",
     author="Javier Abad & Piersilvio de Bartolomeis",
     author_email="javier.abadmartinez@ai.ethz.ch",
     classifiers=[
@@ -36,5 +36,5 @@ setup(
         "torch==2.0.1",
         "cvxpy==1.3.1",
     ],
-    python_requires=">=3",
+    python_requires="==3.11.5",
 )
