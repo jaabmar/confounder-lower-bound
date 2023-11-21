@@ -1,1 +1,3 @@
 **/__pycache__/**
+.vscode/settings.json
+src/.ipynb_checkpoints
