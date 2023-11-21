@@ -3,7 +3,11 @@ from typing import Optional, Union
 
 import pandas as pd
 
-from datasets.semi_synthetic.utils import analyze_data, dataset_checks, split_dataset
+from test_confounding.datasets.semi_synthetic.utils import (
+    analyze_data,
+    dataset_checks,
+    split_dataset,
+)
 
 CAT_COVAR_VOTE = [
     "gender",

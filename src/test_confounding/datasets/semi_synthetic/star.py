@@ -4,7 +4,11 @@ from typing import Optional, Tuple, Union
 import numpy as np
 import pandas as pd
 
-from datasets.semi_synthetic.utils import analyze_data, dataset_checks, split_dataset
+from test_confounding.datasets.semi_synthetic.utils import (
+    analyze_data,
+    dataset_checks,
+    split_dataset,
+)
 
 CAT_COVAR_STAR = [
     "gender",
@@ -45,7 +49,11 @@ def load_star_data(
 
     T_all = star_data.g1classtype[outcome_and_treatment_filter].values
     filtered_indices = T_all != 3
-    X_all = star_data[cat_covar_columns][outcome_and_treatment_filter].fillna(0).values[filtered_indices]
+    X_all = (
+        star_data[cat_covar_columns][outcome_and_treatment_filter]
+        .fillna(0)
+        .values[filtered_indices]
+    )
 
     Y_cols = star_data[Y_columns][outcome_and_treatment_filter].values[filtered_indices]
 
@@ -55,7 +63,9 @@ def load_star_data(
     Y_all = np.sum(Y_cols, axis=1) / 3
 
     if conf_var is not None:
-        confounder = star_data[conf_var][outcome_and_treatment_filter].fillna(0).values[filtered_indices]
+        confounder = (
+            star_data[conf_var][outcome_and_treatment_filter].fillna(0).values[filtered_indices]
+        )
         if conf_var == "g1surban":
             confounder[np.logical_or(confounder == 1, confounder == 3)] = 0
             confounder[np.logical_or(confounder == 2, confounder == 4)] = 1

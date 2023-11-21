@@ -6,7 +6,11 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from sklift.datasets import fetch_hillstrom
 
-from datasets.semi_synthetic.utils import analyze_data, dataset_checks, split_dataset
+from test_confounding.datasets.semi_synthetic.utils import (
+    analyze_data,
+    dataset_checks,
+    split_dataset,
+)
 
 CAT_COVAR_HILLSTROM = [
     "recency",

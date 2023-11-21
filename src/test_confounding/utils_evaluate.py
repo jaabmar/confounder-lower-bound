@@ -8,7 +8,7 @@ from sklearn.metrics import make_scorer, mean_pinball_loss
 from sklearn.model_selection import GridSearchCV, KFold, RandomizedSearchCV
 from statsmodels.api import QuantReg
 
-from datasets.synthetic import alpha_fn, beta_fn
+from test_confounding.datasets.synthetic import alpha_fn, beta_fn
 
 PARAMS_DICT_LGBM = {
     "min_samples_leaf": [1, 5, 10, 20],

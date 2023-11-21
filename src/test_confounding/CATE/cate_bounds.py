@@ -8,20 +8,23 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LogisticRegression
 from xgboost import XGBClassifier, XGBRegressor
 
-from CATE.BLearner.models.blearner.BLearner import (
+from test_confounding.CATE.BLearner.models.blearner.BLearner import (
     BinaryCATEBLearner,
     BinaryPhiBLearner,
     BLearner,
     PhiBLearner,
 )
-from CATE.utils_cate_test import compute_bootstrap_variances_cate_bounds
+from test_confounding.CATE.utils_cate_test import (
+    compute_bootstrap_variances_cate_bounds,
+)
 
 
 class MultipleCATEBoundEstimators:
     """
     A class to create and manage multiple Conditional Average Treatment Effect (CATE) bounds estimators.
 
-    This class allows for the instantiation and parallel fitting of multiple CATE bounds estimators, each with different user-specified confounding strengths (gammas).
+    This class allows for the instantiation and parallel fitting of multiple CATE bounds estimators, each with different
+    user-specified confounding strengths (gammas).
 
     Args:
         gammas (List[float]): A list of confounding strength values (gamma) to use for each CATE estimator.
