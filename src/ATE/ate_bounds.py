@@ -83,15 +83,21 @@ class BootstrapSensitivityAnalysis:
         obs_treatment = self.obs_treatment
         obs_outcome = self.obs_outcome
         if self.sa_name == "QB" and (not self.binary):
-            self.kwargs_sa_treated, self.kwargs_sa_control = self.get_all_quantile_models(fast=fast_quantile)
+            self.kwargs_sa_treated, self.kwargs_sa_control = self.get_all_quantile_models(
+                fast=fast_quantile
+            )
             print("Quantile functions are now trained for QB. Starting bootstrap.")
 
         elif self.sa_name == "QB" and self.binary:
             outcome_model_control = xgb.XGBRegressor()
             outcome_model_treatment = xgb.XGBRegressor()
 
-            outcome_model_control.fit(obs_inputs[obs_treatment == 0], obs_outcome[obs_treatment == 0])
-            outcome_model_treatment.fit(obs_inputs[obs_treatment == 1], obs_outcome[obs_treatment == 1])
+            outcome_model_control.fit(
+                obs_inputs[obs_treatment == 0], obs_outcome[obs_treatment == 0]
+            )
+            outcome_model_treatment.fit(
+                obs_inputs[obs_treatment == 1], obs_outcome[obs_treatment == 1]
+            )
             self.outcome_func_dict = [outcome_model_control, outcome_model_treatment]
             print("Outcome functions are now trained for binary QB. Starting bootstrap.")
 

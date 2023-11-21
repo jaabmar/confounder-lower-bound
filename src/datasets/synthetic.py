@@ -47,7 +47,6 @@ class Synthetic(data.Dataset):
         gamma_star (float): True confounding strength.
         effective_conf (float): Effective confounding.
         num_groups (int): Number of groups in the dataset.
-        p_u (str): Distribution of 'u'. Currently only 'uniform' is supported.
         theta (float): Parameter theta for non-linear model.
         beta (float): Beta parameter for complete propensity.
         sigma_y (float): Standard deviation for outcome noise.
@@ -69,7 +68,6 @@ class Synthetic(data.Dataset):
         gamma_star: float,
         effective_conf: float,
         num_groups: int = 1,
-        p_u: str = "uniform",
         theta: float = 4.0,
         beta: float = 0.75,
         sigma_y: float = 0.1,
@@ -94,11 +92,7 @@ class Synthetic(data.Dataset):
         self.effective_conf = effective_conf
         self.num_groups = num_groups
 
-        if p_u == "uniform":
-            self.u = rng.uniform(size=(num_examples_obs, 1)).astype("float32")
-        else:
-            raise NotImplementedError(f"{p_u} is not a supported distribution")
-
+        self.u = rng.uniform(size=(num_examples_obs, 1)).astype("float32")
         self.pi = (
             complete_propensity(x=self.x, u=self.u, gamma=gamma_star, beta=beta, effective_conf=self.effective_conf)
             .astype("float32")

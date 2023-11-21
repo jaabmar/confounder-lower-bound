@@ -11,13 +11,15 @@ from CATE.BLearner.models.blearner.BLearner import (
 )
 
 
-def compute_bootstrap_variance(Y: np.ndarray, T: np.ndarray, n_bootstraps: int, arm: Optional[int] = None) -> float:
+def compute_bootstrap_variance(
+    Y: np.ndarray, T: np.ndarray, n_bootstraps: int, arm: Optional[int] = None
+) -> float:
     """
     Computes the bootstrap variance estimate of the mean of Y where T == arm or the ATE.
 
     Args:
         Y (numpy.ndarray): The array of outputs.
-        T (numpy.ndarray): The array indicating which observations to select (0 or 1).
+        T (numpy.ndarray): The array of treatments.
         n_bootstraps (int): The number of bootstrap resampling iterations.
         arm (Optional[int]): Compute variance for the treated (1) or control (0) group. None for the CATE.
 
@@ -93,7 +95,7 @@ def resample_and_calculate_mean(Y: np.ndarray, T: np.ndarray, arm: Optional[int]
 
     Args:
         Y (numpy.ndarray): The array of outputs.
-        T (numpy.ndarray): The array indicating which observations to select (0 or 1).
+        T (numpy.ndarray): The array of treatments.
         arm (Optional[int]): Compute variance for the treated (1) or control (0) group. None for the CATE.
 
     Returns:
@@ -111,6 +113,8 @@ def resample_and_calculate_mean(Y: np.ndarray, T: np.ndarray, arm: Optional[int]
     if arm is not None:
         mean_resampled = float(np.mean(Y_resampled[T_resampled == arm]))
     else:
-        mean_resampled = float(np.mean(Y_resampled[T_resampled == 1]) - np.mean(Y_resampled[T_resampled == 0]))
+        mean_resampled = float(
+            np.mean(Y_resampled[T_resampled == 1]) - np.mean(Y_resampled[T_resampled == 0])
+        )
 
     return mean_resampled

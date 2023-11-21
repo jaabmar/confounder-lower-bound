@@ -33,7 +33,7 @@ def rejection_sampler(
         M (int): Constant used in rejection sampling.
 
     Returns:
-        Union[pd.DataFrame, Tuple[pd.DataFrame, np.ndarray]]: The resampled data and optionally, the accepted rows.
+        pd.DataFrame: The resampled data.
     """
     uniform_vector = rng.uniform(0, 1, len(data))
     accepted_rows = uniform_vector < (weights / M)
@@ -114,6 +114,18 @@ def researcher_specified_function_for_confounding(data: pd.DataFrame, confound_f
             quantile = fsolve(solve_quantile_search, 0.5, args=(true_gamma, marginal_treatment))[0]
             quantile_y = np.quantile(data["Y"], q=quantile)
             p_TC = np.array([adv_prop_up if y > quantile_y else adv_prop_down for y in data["Y"]])
+    elif confound_func_params["para_form"] == "adversarial_inv":
+        true_gamma = confound_func_params["true_gamma"]
+        marginal_treatment = np.mean(data["T"])
+        weight = (1 - marginal_treatment) / marginal_treatment
+        adv_prop_up = 1 / (1 + weight * true_gamma)
+        adv_prop_down = 1 / (1 + weight / true_gamma)
+        if len(np.unique(data["Y"])) == 2:
+            p_TC = np.array([adv_prop_up if y == 0.0 else adv_prop_down for y in data["Y"]])
+        else:
+            quantile = fsolve(solve_quantile_search, 0.5, args=(true_gamma, marginal_treatment))[0]
+            quantile_y = np.quantile(data["Y"], q=1 - quantile)
+            p_TC = np.array([adv_prop_up if y < quantile_y else adv_prop_down for y in data["Y"]])
     elif confound_func_params["para_form"] == "multiple":
         unique_values = np.unique(data["C"])
         p_TC = np.zeros_like(data["C"], dtype=np.float32)
@@ -129,7 +141,7 @@ def researcher_specified_function_for_confounding(data: pd.DataFrame, confound_f
 
 
 def resample_data_with_confound_func(
-    df: pd.DataFrame, confound_func_params: Optional[Dict[str, float]] = None, seed: int = 42, M: Optional[float] = None
+    df: pd.DataFrame, confound_func_params: Optional[Dict] = None, seed: int = 42, M: Optional[float] = None
 ) -> pd.DataFrame:
     """
     Resamples a DataFrame based on confounder function parameters using a rejection sampler.
@@ -139,7 +151,7 @@ def resample_data_with_confound_func(
 
     Args:
         df (pd.DataFrame): The DataFrame to resample.
-        confound_func_params (Optional[Dict[str, float]]): Parameters for the confounder function.
+        confound_func_params (Optional[Dict]): Parameters for the confounder function.
             Defaults to {"para_form": "piecewise", "zeta0": 0.15, "zeta1": 0.85} if None.
         seed (int): Seed for the random number generator. Default is 42.
         M (Optional[float]): A constant used in rejection sampling. If None, it is calculated
@@ -171,8 +183,7 @@ def subsample_df(
 ) -> pd.DataFrame:
     """
     This function aims to create a subsampled dataset from the provided observational data
-    by considering treatment effect (gamma) and confounding variables. It allows for options
-    to conduct this subsampling in an adversarial or inverse manner.
+    by considering treatment effect (gamma) and confounding variables.
 
     Args:
         true_gamma (float): The true confounding.

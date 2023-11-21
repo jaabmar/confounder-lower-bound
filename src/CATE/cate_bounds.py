@@ -1,10 +1,9 @@
 import time
 from concurrent.futures import ThreadPoolExecutor
-from typing import List, Optional, Union
+from typing import Callable, Dict, List, Optional, Union
 
 import numpy as np
 from quantile_forest import RandomForestQuantileRegressor
-from sklearn import clone
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LogisticRegression
 from xgboost import XGBClassifier, XGBRegressor
@@ -15,29 +14,45 @@ from CATE.BLearner.models.blearner.BLearner import (
     BLearner,
     PhiBLearner,
 )
-from CATE.BLearner.models.blearner.nuisance import (
-    KernelSuperquantileRegressor,
-    RFKernel,
-)
 from CATE.utils_cate_test import compute_bootstrap_variances_cate_bounds
 
 
 class MultipleCATEBoundEstimators:
+    """
+    A class to create and manage multiple Conditional Average Treatment Effect (CATE) bounds estimators.
+
+    This class allows for the instantiation and parallel fitting of multiple CATE bounds estimators, each with different user-specified confounding strengths (gammas).
+
+    Args:
+        gammas (List[float]): A list of confounding strength values (gamma) to use for each CATE estimator.
+        n_bootstrap (int): Number of bootstrap samples for each estimator.
+        binary (bool): Indicates whether the outcome is binary. Defaults to False.
+        cv (int): Number of cross-validation folds. Defaults to 1.
+        seed (int): Random seed for reproducibility. Defaults to 50.
+        mu (Optional[Callable]): Pre-specified model for mean outcomes. If None, a default model is used in estimators.
+        quantile_upper (Optional[Callable]): Pre-specified model for upper quantile. If None, a default model is used.
+        quantile_lower (Optional[Callable]): Pre-specified model for lower quantile. If None, a default model is used.
+        bounds (Optional[Callable]): Pre-specified model for bounds estimation. If None, a default model is used.
+
+    Attributes:
+        dict_bound_estimators (Dict[str, CATEBoundsEstimator]): Dictionary of CATE bounds estimators indexed by gamma value.
+    """
+
     def __init__(
         self,
-        gammas: List,
+        gammas: List[float],
         n_bootstrap: int,
         binary: bool = False,
         cv: int = 1,
         seed: int = 50,
-        mu=None,
-        quantile_upper=None,
-        quantile_lower=None,
-        bounds=None,
+        mu: Optional[Callable] = None,
+        quantile_upper: Optional[Callable] = None,
+        quantile_lower: Optional[Callable] = None,
+        bounds: Optional[Callable] = None,
     ):
-        self.dict_bound_estimators = {}
+        self.dict_bound_estimators: Dict[str, CATEBoundsEstimator] = {}
 
-        def create_estimator(gamma_value):
+        def create_estimator(gamma_value: float) -> (str, CATEBoundsEstimator):
             return str(gamma_value), CATEBoundsEstimator(
                 binary=binary,
                 user_conf=gamma_value,
@@ -56,12 +71,22 @@ class MultipleCATEBoundEstimators:
 
     def fit(
         self,
-        x_obs,
-        t_obs,
-        y_obs,
-        sample_weight=False,
-    ):
-        def fit_estimator(cate_estimator):
+        x_obs: np.ndarray,
+        t_obs: np.ndarray,
+        y_obs: np.ndarray,
+        sample_weight: Optional[bool] = False,
+    ) -> None:
+        """
+        Fit all CATE bounds estimators in parallel.
+
+        Args:
+            x_obs (np.ndarray): The observed covariates.
+            t_obs (np.ndarray): The observed treatment status.
+            y_obs (np.ndarray): The observed outcomes.
+            sample_weight (Optional[bool]): Use sample weights for imbalance data. Defaults to False.
+        """
+
+        def fit_estimator(cate_estimator: CATEBoundsEstimator):
             cate_estimator.fit(x_obs, t_obs, y_obs, sample_weight)
 
         start_time = time.time()
@@ -72,7 +97,9 @@ class MultipleCATEBoundEstimators:
         end_time = time.time()
         elapsed_time = end_time - start_time
 
-        print(f"All CATE bounds estimators are now trained. Elapsed time: {elapsed_time:.2f} seconds")
+        print(
+            f"All CATE bounds estimators are now trained. Elapsed time: {elapsed_time:.2f} seconds"
+        )
 
 
 class _BaseBoundsEstimator:
@@ -95,9 +122,11 @@ class _BaseBoundsEstimator:
         """
         return self.user_conf / (1 + self.user_conf)
 
-    def fit(self, x_obs: np.ndarray, t_obs: np.ndarray, y_obs: np.ndarray, sample_weight: bool = False):
+    def fit(
+        self, x_obs: np.ndarray, t_obs: np.ndarray, y_obs: np.ndarray, sample_weight: bool = False
+    ):
         """
-        Fit the estimator model on the provided data.
+        Fit the bounds estimator model on the provided data.
 
         Args:
             x_obs (np.ndarray): The observational covariate data.
@@ -134,12 +163,14 @@ class _BaseBoundsEstimator:
         mean_lb, mean_ub = float(np.mean(lower_bounds)), float(np.mean(upper_bounds))
         return mean_lb, mean_ub
 
-    def estimate_bootstrap_variances(self, x_rct: np.ndarray, n_bootstrap: Optional[int] = None) -> tuple[float, float]:
+    def estimate_bootstrap_variances(
+        self, x_rct: np.ndarray, n_bootstrap: Optional[int] = None
+    ) -> tuple[float, float]:
         """
-        Estimate the bootstrap variances for the provided treatment covariate data.
+        Estimate the bootstrap variances for the provided covariate data.
 
         Args:
-            x_rct (np.ndarray): The treatment covariate data.
+            x_rct (np.ndarray): The covariate data.
             n_bootstrap (int): The number of bootstrap iterations.
 
         Returns:
@@ -153,6 +184,24 @@ class _BaseBoundsEstimator:
 
 
 class CATEBoundsEstimator(_BaseBoundsEstimator):
+    """
+    Estimator for Conditional Average Treatment Effect (CATE) bounds.
+
+    This class estimates bounds for the CATE under potential outcomes framework using a variety of models.
+    It supports both binary and continuous outcomes.
+
+    Args:
+        binary (bool): Indicates whether the outcome is binary. Defaults to False.
+        user_conf (float): User-specified confounding level. Defaults to 1.0.
+        n_bootstrap (int): Number of bootstrap samples to use. Defaults to 1000.
+        cv (int): Number of cross-validation folds. Defaults to 5.
+        seed (int): Random seed for reproducibility. Defaults to 50.
+        mu (Optional[Callable]): Pre-specified model for mean outcomes. If None, a default model is used.
+        quantile_upper (Optional[Callable]): Pre-specified model for upper quantile. If None, a default model is used.
+        quantile_lower (Optional[Callable]): Pre-specified model for lower quantile. If None, a default model is used.
+        bounds (Optional[Callable]): Pre-specified model for bounds estimation. If None, a default model is used.
+    """
+
     def __init__(
         self,
         binary: bool = False,
@@ -160,10 +209,10 @@ class CATEBoundsEstimator(_BaseBoundsEstimator):
         n_bootstrap: int = 1000,
         cv: int = 5,
         seed: int = 50,
-        mu=None,
-        quantile_upper=None,
-        quantile_lower=None,
-        bounds=None,
+        mu: Optional[Callable] = None,
+        quantile_upper: Optional[Callable] = None,
+        quantile_lower: Optional[Callable] = None,
+        bounds: Optional[Callable] = None,
     ):
         self.user_conf = user_conf
         self.n_bootstrap = n_bootstrap
@@ -176,7 +225,6 @@ class CATEBoundsEstimator(_BaseBoundsEstimator):
             solver="saga",
             l1_ratio=0.7,
             max_iter=10000,
-            # class_weight="balanced",
             random_state=seed,
         )
 
@@ -200,7 +248,6 @@ class CATEBoundsEstimator(_BaseBoundsEstimator):
                     n_jobs=-2,
                     default_quantiles=[self._compute_tau()],
                     random_state=seed,
-                    default_quantiles=[self._compute_tau()],
                 )
                 if quantile_upper is None
                 else quantile_upper
@@ -214,7 +261,6 @@ class CATEBoundsEstimator(_BaseBoundsEstimator):
                     n_jobs=-2,
                     default_quantiles=[1 - self._compute_tau()],
                     random_state=seed,
-                    default_quantiles=[1 - self._compute_tau()],
                 )
                 if quantile_lower is None
                 else quantile_lower
@@ -275,10 +321,28 @@ class CATEBoundsEstimator(_BaseBoundsEstimator):
                 cv=cv,
             )
 
-        super().__init__(bounds_est=self.phi_bounds_est, user_conf=user_conf, n_bootstrap=n_bootstrap)
+        super().__init__(
+            bounds_est=self.phi_bounds_est, user_conf=user_conf, n_bootstrap=n_bootstrap
+        )
 
 
 class PhiBoundsEstimator(_BaseBoundsEstimator):
+    """
+    Estimator for potential outcome regression bounds for treated or control group.
+
+    Args:
+        binary (bool): Indicates whether the outcome is binary. Defaults to False.
+        arm (int): Indicator for treatment (1) or control (0) group.
+        user_conf (float): User-specified confounding level. Defaults to 1.0.
+        n_bootstrap (int): Number of bootstrap samples to use. Defaults to 1000.
+        cv (int): Number of cross-validation folds. Defaults to 5.
+        seed (int): Random seed for reproducibility. Defaults to 50.
+        mu (Optional[Callable]): Pre-specified model for mean outcomes. If None, a default model is used.
+        bounds (Optional[Callable]): Pre-specified model for bounds estimation. If None, a default model is used.
+        quantile_upper (Optional[Callable]): Pre-specified model for upper quantile. If None, a default model is used.
+        quantile_lower (Optional[Callable]): Pre-specified model for lower quantile. If None, a default model is used.
+    """
+
     def __init__(
         self,
         binary: bool = False,
@@ -287,10 +351,10 @@ class PhiBoundsEstimator(_BaseBoundsEstimator):
         n_bootstrap: int = 1000,
         cv: int = 5,
         seed: int = 50,
-        mu=None,
-        bounds=None,
-        quantile_upper=None,
-        quantile_lower=None,
+        mu: Optional[Callable] = None,
+        bounds: Optional[Callable] = None,
+        quantile_upper: Optional[Callable] = None,
+        quantile_lower: Optional[Callable] = None,
     ):
         self.arm = arm
         self.user_conf = user_conf
@@ -303,7 +367,6 @@ class PhiBoundsEstimator(_BaseBoundsEstimator):
             solver="saga",
             l1_ratio=0.7,
             max_iter=10000,
-            # class_weight="balanced",
             random_state=seed,
         )
 
@@ -343,19 +406,6 @@ class PhiBoundsEstimator(_BaseBoundsEstimator):
                 if quantile_lower is None
                 else quantile_lower
             )
-            # self.cvar_model = KernelSuperquantileRegressor(
-            #     kernel=RFKernel(
-            #         RandomForestRegressor(
-            #             n_estimators=n_estimators,
-            #             max_depth=max_depth,
-            #             min_samples_leaf=min_samples_leaf,
-            #             n_jobs=-2,
-            #             random_state=seed,
-            #         )
-            #     ),
-            #     tau=self._compute_tau(),
-            #     tail="right",
-            # )
 
             bounds_model = (
                 RandomForestRegressor(
@@ -374,8 +424,6 @@ class PhiBoundsEstimator(_BaseBoundsEstimator):
                 quantile_plus_model=quantile_model_upper,
                 quantile_minus_model=quantile_model_lower,
                 mu_model=mu_model,
-                #        cvar_plus_model=self.cvar_model,
-                #       cvar_minus_model=self.cvar_model,
                 cate_bounds_model=bounds_model,
                 use_rho=True,
                 gamma=self.user_conf,
@@ -392,7 +440,6 @@ class PhiBoundsEstimator(_BaseBoundsEstimator):
                     min_samples_leaf=0.01,
                     n_jobs=-2,
                     random_state=seed,
-                    #    class_weight="balanced",
                 )
                 if mu is None
                 else mu
@@ -421,40 +468,3 @@ class PhiBoundsEstimator(_BaseBoundsEstimator):
             )
 
         super().__init__(bounds_est=phi_bounds_est, user_conf=user_conf, n_bootstrap=n_bootstrap)
-
-
-def construct_blearner(gamma, seed=50):
-    tau = gamma / (1 + gamma)
-
-    # Propensity model
-    propensity_model = LogisticRegression(C=1, penalty="elasticnet", solver="saga", l1_ratio=0.7, max_iter=10000)
-    # Outcome model
-    mu_model = RandomForestRegressor(n_estimators=300, min_samples_leaf=0.01, max_depth=6, random_state=seed)
-    # Quantiles
-    quantile_model_upper = RandomForestQuantileRegressor(
-        n_estimators=300, min_samples_leaf=0.01, max_depth=6, default_quantiles=[tau]
-    )
-    quantile_model_lower = RandomForestQuantileRegressor(
-        n_estimators=300, min_samples_leaf=0.01, max_depth=6, default_quantiles=[1 - tau]
-    )
-    # CVaR model
-    cvar_model_upper = KernelSuperquantileRegressor(kernel=RFKernel(clone(mu_model, safe=False)), tau=tau, tail="right")
-    cvar_model_lower = KernelSuperquantileRegressor(
-        kernel=RFKernel(clone(mu_model, safe=False)), tau=1 - tau, tail="left"
-    )
-    # Bounds model
-    cate_bounds_model = RandomForestRegressor(n_estimators=300, min_samples_leaf=0.01, max_depth=6, random_state=seed)
-    # BLearner estimator
-    BLearner_est = BLearner(
-        propensity_model=propensity_model,
-        quantile_plus_model=quantile_model_upper,
-        quantile_minus_model=quantile_model_lower,
-        mu_model=mu_model,
-        cvar_plus_model=cvar_model_upper,
-        cvar_minus_model=cvar_model_lower,
-        cate_bounds_model=cate_bounds_model,
-        use_rho=True,
-        gamma=gamma,
-    )
-
-    return BLearner_est

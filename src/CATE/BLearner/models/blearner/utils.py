@@ -1,10 +1,8 @@
+"Code adapted from https://github.com/CausalML/BLearner"
+
 import numpy as np
 from sklearn import clone
 from sklearn.utils import compute_sample_weight
-
-##################
-# Wrapper models #
-##################
 
 
 def _crossfit(model, folds, X, A, Y, weighting=False):
@@ -173,8 +171,8 @@ class Binary_CATE_Nuisance_Model:
         self.mu_models[1].fit(X[A == 1], Y[A == 1], sample_weight=weights_1)
 
     def quantile_plus(self, X, arm):
-        if hasattr(self.mu_models[arm], 'predict_proba'):
-            mu = self.mu_models[arm].predict_proba(X)[:,1]
+        if hasattr(self.mu_models[arm], "predict_proba"):
+            mu = self.mu_models[arm].predict_proba(X)[:, 1]
         else:
             mu = self.mu_models[arm].predict(X)
         Q_plus = np.zeros_like(mu)
@@ -182,8 +180,8 @@ class Binary_CATE_Nuisance_Model:
         return Q_plus
 
     def quantile_minus(self, X, arm):
-        if hasattr(self.mu_models[arm], 'predict_proba'):
-            mu = self.mu_models[arm].predict_proba(X)[:,1]
+        if hasattr(self.mu_models[arm], "predict_proba"):
+            mu = self.mu_models[arm].predict_proba(X)[:, 1]
         else:
             mu = self.mu_models[arm].predict(X)
         Q_minus = np.zeros_like(mu)
@@ -191,16 +189,16 @@ class Binary_CATE_Nuisance_Model:
         return Q_minus
 
     def rho_plus(self, X, arm):
-        if hasattr(self.mu_models[arm], 'predict_proba'):
-            mu = self.mu_models[arm].predict_proba(X)[:,1]
+        if hasattr(self.mu_models[arm], "predict_proba"):
+            mu = self.mu_models[arm].predict_proba(X)[:, 1]
         else:
             mu = self.mu_models[arm].predict(X)
         rho_plus = np.minimum(1 - 1 / self.gamma + mu / self.gamma, mu * self.gamma)
         return rho_plus
 
     def rho_minus(self, X, arm):
-        if hasattr(self.mu_models[arm], 'predict_proba'):
-            mu = self.mu_models[arm].predict_proba(X)[:,1]
+        if hasattr(self.mu_models[arm], "predict_proba"):
+            mu = self.mu_models[arm].predict_proba(X)[:, 1]
         else:
             mu = self.mu_models[arm].predict(X)
         rho_minus = np.maximum(1 - self.gamma + mu * self.gamma, mu / self.gamma)

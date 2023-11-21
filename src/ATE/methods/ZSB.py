@@ -15,8 +15,9 @@ class ZSBSensitivityAnalysis:
         obs_inputs (np.ndarray): array containing the input data.
         obs_treatment (np.ndarray): array containing the treatment status for each observation.
         obs_outcome (np.ndarray): array containing the outcome for each observed individual.
-        e_x_func (Callable): true propensity score function.
         gamma (float): confounding strength.
+        arm (int): indicator for treatment (arm = 1) or control (arm = 0) group.
+        e_x_func (Optional[Callable[..., np.ndarray]]): true propensity score function.
 
     Methods:
         solve_bounds(): solves for the lower and upper bounds.

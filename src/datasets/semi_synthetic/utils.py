@@ -1,7 +1,7 @@
 """
-This file contains helper functions for results and visualizations
+This file contains helper functions for analysis of results
 """
-from typing import Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -27,7 +27,7 @@ def odds_ratio(Y: np.ndarray, C: np.ndarray):
     return (Y1C1 / Y0C1) / (Y1C0 / Y0C0)
 
 
-def dataset_checks(data):
+def dataset_checks(data: pd.DataFrame):
     Y = data["Y"].to_numpy()
     C = data["C"].to_numpy()
     T = data["T"].to_numpy()
@@ -60,26 +60,7 @@ def dataset_checks(data):
     print("Mean(Y) = ", np.mean(Y))
 
 
-def check_invalid_sample(data_resampled):
-    """
-    Checks through a few cases in which we cannot estimate the ACE. For all units,
-        - T*C == T, or
-        - T == C
-
-    Returns True if the sample is invalid
-    """
-    tc = data_resampled["T"] * data_resampled["C"]
-    if np.array_equal(tc, data_resampled["T"]):
-        print("Invalid sample, T*C==T for all units")
-        return True
-    elif np.array_equal(data_resampled["T"], data_resampled["C"]):
-        print("Invalid sample, T==C for all units")
-        return True
-    else:
-        return False
-
-
-def analyze_data(df, fit_xgboost=False, return_top_k_features=None):
+def analyze_data(df: pd.DataFrame, fit_xgboost: bool = False, return_top_k_features: Optional[int] = None):
     columns = df.columns
     T_column = "T"
     other_columns = [col_name for col_name in columns if col_name != "Y" and col_name != T_column]
@@ -133,11 +114,11 @@ def to_categorical(X):
 
 
 def split_dataset(
-    df,
-    support_feature="g1surban",
-    support_feature_values=None,
-    proportion_full_support=0.5,
-    seed=42,
+    df: pd.DataFrame,
+    support_feature: str = "g1surban",
+    support_feature_values: Optional[List] = None,
+    proportion_full_support: float = 0.5,
+    seed: int = 42,
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
     if support_feature_values is None:
         support_feature_values = [1, 2]

@@ -9,18 +9,26 @@ from utils_evaluate import get_quantile_regressor
 
 class QBSensitivityAnalysis:
     """
-    Class for conducting sharp sensitivity analysis for IPW via quantile balancing (Dorn et al.).
+    Class for conducting sharp sensitivity analysis for Inverse Probability Weighting via quantile balancing (Dorn et al.).
+
+    This class analyzes the sensitivity of causal effect estimates to unobserved confounding. It uses quantile regression
+    to estimate bounds on the potential outcomes under different levels of unmeasured confounding.
 
     Args:
-        obs_inputs (np.ndarray): array containing the input data.
-        obs_treatment (np.ndarray): array containing the treatment status for each observation.
-        obs_outcome (np.ndarray): array containing the outcome for each observed individual.
-        e_x_func (Callable): true propensity score function.
-        gamma (float): confounding strength.
+        obs_inputs (np.ndarray): Array containing the input data.
+        obs_treatment (np.ndarray): Array containing the treatment status for each observation.
+        obs_outcome (np.ndarray): Array containing the outcomes for each observed individual.
+        gamma (float): Confounding strength.
+        arm (int): Indicator for treatment (1) or control (0) group.
+        binary (bool): Indicator for binary outcome. Defaults to False.
+        lb_qr_func (Optional[Callable[..., np.ndarray]]): Quantile function for the lower bound.
+        ub_qr_func (Optional[Callable[..., np.ndarray]]): Quantile function for the upper bound.
+        e_x_func (Optional[Callable[..., np.ndarray]]): True propensity score function.
+        outcome_func_dict (Optional[Dict[int, Callable]]): Dictionary of functions to compute outcomes for binary cases.
 
     Methods:
-        solve_bounds(): solves for the lower and upper bounds.
-        compute_closed_form_bounds(quant_reg, target): computes closed form bounds.
+        solve_bounds(): Solves for the lower and upper bounds.
+        compute_closed_form_bounds(quant_reg, target): Computes closed form bounds.
     """
 
     def __init__(
@@ -80,9 +88,15 @@ class QBSensitivityAnalysis:
             self.e_x = 1 - self.e_x
 
         if not binary:
-            self.lb_g_x = self.lb_qr_func.predict(obs_inputs[obs_treatment == self.arm]).reshape(-1, 1)
-            self.ub_g_x = self.ub_qr_func.predict(obs_inputs[obs_treatment == self.arm]).reshape(-1, 1)
-            self.weights = (1 - self.e_x[obs_treatment == self.arm]) / self.e_x[obs_treatment == self.arm]
+            self.lb_g_x = self.lb_qr_func.predict(obs_inputs[obs_treatment == self.arm]).reshape(
+                -1, 1
+            )
+            self.ub_g_x = self.ub_qr_func.predict(obs_inputs[obs_treatment == self.arm]).reshape(
+                -1, 1
+            )
+            self.weights = (1 - self.e_x[obs_treatment == self.arm]) / self.e_x[
+                obs_treatment == self.arm
+            ]
         else:
             self.outcome_func = outcome_func_dict[self.arm]
 
@@ -106,13 +120,23 @@ class QBSensitivityAnalysis:
                     q_plus * self.obs_treatment / self.e_x
                     + (self.obs_outcome - q_plus)
                     * self.obs_treatment
-                    * (1 + (1 - self.e_x) / self.e_x * self.gamma ** (np.sign(self.obs_outcome - q_plus)))
+                    * (
+                        1
+                        + (1 - self.e_x)
+                        / self.e_x
+                        * self.gamma ** (np.sign(self.obs_outcome - q_plus))
+                    )
                 ).mean()
                 lb = (
                     q_min * self.obs_treatment / self.e_x
                     + (self.obs_outcome - q_min)
                     * self.obs_treatment
-                    * (1 + (1 - self.e_x) / self.e_x * self.gamma ** (-np.sign(self.obs_outcome - q_min)))
+                    * (
+                        1
+                        + (1 - self.e_x)
+                        / self.e_x
+                        * self.gamma ** (-np.sign(self.obs_outcome - q_min))
+                    )
                 ).mean()
 
             else:
@@ -120,20 +144,34 @@ class QBSensitivityAnalysis:
                     q_plus * (1 - self.obs_treatment) / self.e_x
                     + (self.obs_outcome - q_plus)
                     * (1 - self.obs_treatment)
-                    * (1 + (1 - self.e_x) / self.e_x * self.gamma ** (np.sign(self.obs_outcome - q_plus)))
+                    * (
+                        1
+                        + (1 - self.e_x)
+                        / self.e_x
+                        * self.gamma ** (np.sign(self.obs_outcome - q_plus))
+                    )
                 ).mean()
                 lb = (
                     q_min * (1 - self.obs_treatment) / self.e_x
                     + (self.obs_outcome - q_min)
                     * (1 - self.obs_treatment)
-                    * (1 + (1 - self.e_x) / self.e_x * self.gamma ** (-np.sign(self.obs_outcome - q_min)))
+                    * (
+                        1
+                        + (1 - self.e_x)
+                        / self.e_x
+                        * self.gamma ** (-np.sign(self.obs_outcome - q_min))
+                    )
                 ).mean()
 
         else:
             # Compute bounds
-            lb = -self.compute_closed_form_bounds(self.lb_g_x, -self.obs_outcome[self.obs_treatment == self.arm])
+            lb = -self.compute_closed_form_bounds(
+                self.lb_g_x, -self.obs_outcome[self.obs_treatment == self.arm]
+            )
 
-            ub = self.compute_closed_form_bounds(self.ub_g_x, self.obs_outcome[self.obs_treatment == self.arm])
+            ub = self.compute_closed_form_bounds(
+                self.ub_g_x, self.obs_outcome[self.obs_treatment == self.arm]
+            )
 
         return (lb, ub)
 

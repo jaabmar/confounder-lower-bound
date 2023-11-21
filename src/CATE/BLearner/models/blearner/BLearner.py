@@ -1,3 +1,5 @@
+"Code adapted from https://github.com/CausalML/BLearner"
+
 import numpy as np
 from sklearn import clone
 from sklearn.model_selection import KFold
@@ -9,10 +11,6 @@ from .utils import (
     Phi_Nuisance_Model,
     _crossfit,
 )
-
-#######################
-# Main BLearner class #
-#######################
 
 
 class _BaseBLearner:
@@ -266,8 +264,8 @@ class _BinaryBaseBLearner:
             q_tau_1 + (1 / (1 - self.tau)) * np.maximum(Y - q_tau_1, 0)
         )
         phi = rho_plus_1 + (A / e) * (R_plus_1 - rho_plus_1) + A * Y - A * R_plus_1
-        
-        phi = rho_plus_1*(1-A) + A * Y 
+
+        phi = rho_plus_1 * (1 - A) + A * Y
         return phi
 
     def _get_pseudo_outcome_minus_1(self, A, Y, nuisances):
@@ -278,7 +276,7 @@ class _BinaryBaseBLearner:
             q_tau_1 + (1 / (1 - self.tau)) * np.minimum(Y - q_tau_1, 0)
         )
         phi = rho_minus_1 + (A / e) * (R_minus_1 - rho_minus_1) + A * Y - A * R_minus_1
-        phi=  (1-A)*rho_minus_1 +  (A) * Y
+        phi = (1 - A) * rho_minus_1 + (A) * Y
         return phi
 
     def _get_pseudo_outcome_plus_0(self, A, Y, nuisances):
@@ -295,7 +293,7 @@ class _BinaryBaseBLearner:
             + (1 - A) * Y
             - (1 - A) * R_plus_0
         )
-        phi = (A)* rho_plus_0 + Y *(1-A)
+        phi = (A) * rho_plus_0 + Y * (1 - A)
         return phi
 
     def _get_pseudo_outcome_minus_0(self, A, Y, nuisances):
@@ -311,7 +309,7 @@ class _BinaryBaseBLearner:
             + (1 - A) * Y
             - (1 - A) * R_minus_0
         )
-        phi = rho_minus_0*A + (1-A)*Y
+        phi = rho_minus_0 * A + (1 - A) * Y
         return phi
 
 
@@ -532,13 +530,12 @@ class _BinaryBasePhiBLearner:
         )
         if self.arm == 1:
             phi = rho_plus + (A / e) * (R_plus - rho_plus) + A * Y - A * R_plus
-            phi = rho_plus - A/e *rho_plus
+            phi = rho_plus - A / e * rho_plus
         else:
             phi = (
                 rho_plus + (1 - A) / (1 - e) * (R_plus - rho_plus) + (1 - A) * Y - (1 - A) * R_plus
             )
-            phi = rho_plus - (1-A)/(1-e) * rho_plus
-
+            phi = rho_plus - (1 - A) / (1 - e) * rho_plus
 
         return phi
 
@@ -551,12 +548,12 @@ class _BinaryBasePhiBLearner:
         )
         if self.arm == 1:
             phi = rho_minus + (A / e) * (R_minus - rho_minus) + A * Y - A * R_minus
-            phi = rho_minus - A/e * rho_minus
+            phi = rho_minus - A / e * rho_minus
         else:
             phi = (
                 rho_minus
-                + (1 - A) / (1 - e) * ( - rho_minus)
-                 + (1 - A) / (1 - e) * (R_minus - rho_minus)
+                + (1 - A) / (1 - e) * (-rho_minus)
+                + (1 - A) / (1 - e) * (R_minus - rho_minus)
                 + (1 - A) * Y
                 - (1 - A) * R_minus
             )
