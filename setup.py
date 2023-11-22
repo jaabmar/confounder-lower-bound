@@ -37,4 +37,7 @@ setup(
         "cvxpy==1.3.1",
     ],
     python_requires="==3.11.5",
+    extras_require={
+        "tests": ["pytest==7.2.1", "pytest-mock==3.10.0"],
+    },
 )
