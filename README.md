@@ -17,15 +17,16 @@ This repository contains the Python implementation of [Hidden yet quantifiable: 
 
 ## Overview
 
-This repository implements the methods from the paper "Hidden yet quantifiable: A lower bound for confounding strength using randomized trials." This tool is designed for researchers in the field of epidemiology, enabling them to assess and quantify the impact of unobserved confounders in observational studies. Unobserved confounders are variables that are not measured or accounted for in a study, but can significantly influence its outcomes, leading to biased results.
+This repository implements the methods from the paper "Hidden yet quantifiable: A lower bound for confounding strength using randomized trials." The tools are designed for researchers in the field of epidemiology, enabling them to identify and lower bound the impact of unobserved confounding in observational studies. Unobserved confounders are variables that are not measured or accounted for in a study, but can significantly influence its outcomes, leading to biased results.
 
-Our approach has two key components:
+Our approach consists of two main components:
 
-1. **Detection Test**: It includes a statistical test to detect the presence of unobserved confounders that have an impact beyond a certain threshold. This is crucial for verifying the validity of the study's conclusions.
+1. **Detection Test**: This component includes two statistical tests to detect the presence of unobserved confounding with strength above a given threshold. This is key for distinguishing between _weak_ and _strong_ unobserved confounding, thereby verifying the validity of the study's conclusions.
 
-2. **Lower Bound Estimation**: The tool estimates a lower bound for the strength of the unobserved confounding. This estimation helps in understanding the extent to which these hidden variables could be influencing the study results.
+2. **Lower Bound Estimation**: This tool estimates a lower bound for the strength of unobserved confounding. Establishing a lower bound helps in understanding how significantly unobserved confounding might alter the conclusions of the study, enabling practitioners to proactively reduce its impact.
 
-In the context of post-marketing surveillance, where researchers have access to both randomized trial data and observational datasets, our tool becomes particularly valuable. It allows for a more rigorous analysis of the treatment's effectiveness and safety by quantifying the potential biases due to unobserved confounders.
+
+Our tool becomes particularly useful in the context of drug regulation and post-marketing surveillance, where researchers usually have access to both randomized trial data and observational datasets. It allows for a more rigorous analysis of the treatment's effectiveness and safety by quantifying the potential biases due to unobserved confounders.
 
 <p align="center">
   <img src="motivating_example.png" alt="An illustrative example of the drug regulatory process: our lower bound allows taking proactive measures to address the unobserved confounding problem."/>
