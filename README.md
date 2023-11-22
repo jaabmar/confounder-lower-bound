@@ -51,21 +51,38 @@ As depicted in the image above, the application of our methodology in the drug r
 - Torch 2.0.1
 - CVXPY 1.3.1
 
-### Installing
+### Installation
 
-To set up the environment and install the package, follow these steps:
+To set up your environment and install the package, follow these steps:
 
+#### Create and Activate a Conda Environment
+
+Start by creating a Conda environment with Python 3.11.5. This step ensures your package runs in an environment with the correct Python version. 
 ```bash
 conda create -n myenv python=3.11.5
 conda activate myenv
-pip install --upgrade pip
-pip install -e .         
 ```
+#### Install the Package
 
-Alternatively, install directly from GitHub:
+There are two ways to install the package:
 
+1. **Local Installation:**
+   If you have the package locally, upgrade `pip` to its latest version. Then, use the local setup files to install your package. This method is ideal for development or when you have the source code.
+   ```bash
+   pip install --upgrade pip
+   pip install -e 
+   ```
+2. **Direct Installation from GitHub:**
+   You can also install the package directly from GitHub. This method is straightforward and ensures you have the latest version.
+   ```bash
+   pip install git+https://github.com/jaabmar/confounder-lower-bound.git
+   ```
+
+#### Installing Dependencies for Unit Testing
+
+To run the unit tests located in the `\tests` folder, you need to install additional dependencies. These dependencies are required for testing and ensure that you can run all the tests properly.
 ```bash
-pip install git+https://github.com/jaabmar/confounder-lower-bound.git
+pip install -e .[testing]
 ```
 
 ## Usage
