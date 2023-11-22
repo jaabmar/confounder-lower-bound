@@ -70,7 +70,7 @@ There are two ways to install the package:
    If you have the package locally, upgrade `pip` to its latest version. Then, use the local setup files to install your package. This method is ideal for development or when you have the source code.
    ```bash
    pip install --upgrade pip
-   pip install -e 
+   pip install -e .
    ```
 2. **Direct Installation from GitHub:**
    You can also install the package directly from GitHub. This method is straightforward and ensures you have the latest version.
