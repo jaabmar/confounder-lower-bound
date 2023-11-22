@@ -19,7 +19,13 @@ def f_mu_linear(x, t, u):
 
 
 def f_mu(x, t, u, theta=4.0):
-    mu = (2 * t - 1) * x + (2.0 * t - 1) - 2 * np.sin((4 * t - 2) * x) - (theta * u - 2) * (1 + 0.5 * x) + u
+    mu = (
+        (2 * t - 1) * x
+        + (2.0 * t - 1)
+        - 2 * np.sin((4 * t - 2) * x)
+        - (theta * u - 2) * (1 + 0.5 * x)
+        + u
+    )
     return mu
 
 
@@ -94,7 +100,9 @@ class Synthetic(data.Dataset):
 
         self.u = rng.uniform(size=(num_examples_obs, 1)).astype("float32")
         self.pi = (
-            complete_propensity(x=self.x, u=self.u, gamma=gamma_star, beta=beta, effective_conf=self.effective_conf)
+            complete_propensity(
+                x=self.x, u=self.u, gamma=gamma_star, beta=beta, effective_conf=self.effective_conf
+            )
             .astype("float32")
             .ravel()
         )
@@ -143,18 +151,6 @@ class Synthetic(data.Dataset):
             tuple: A tuple containing the input and target data at the given index.
         """
         return self.x[index], self.y[index : index + 1]
-
-    def tau_fn(self, x: np.ndarray) -> np.ndarray:
-        """
-        Computes the treatment effect function.
-
-        Args:
-            x (np.ndarray): Input feature array.
-
-        Returns:
-            np.ndarray: Treatment effect computed for the input array.
-        """
-        return f_mu(x=x, t=1.0, u=1.0, theta=0.0) - f_mu(x=x, t=0.0, u=1.0, theta=0.0)
 
 
 def assign_groups(num_groups: int, domain: float) -> Callable[..., np.ndarray]:
@@ -235,7 +231,9 @@ class RCT:
         """
         rng = np.random.default_rng(seed=seed)
         self.u = rng.uniform(size=(self.num_examples, 1)).astype(np.float32)
-        self.x = rng.uniform(-self.domain, self.domain, size=(self.num_examples, 1)).astype(np.float32)
+        self.x = rng.uniform(-self.domain, self.domain, size=(self.num_examples, 1)).astype(
+            np.float32
+        )
         self.pi = np.full((self.num_examples,), 0.5).astype("float32").ravel()
         self.t = rng.binomial(1, self.pi).astype(np.float32)
         eps = (self.sigma_y * rng.normal(size=self.t.shape)).astype(np.float32)

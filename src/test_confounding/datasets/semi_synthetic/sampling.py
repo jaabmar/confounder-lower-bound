@@ -57,13 +57,17 @@ def weights_for_rejection_sampler(
 
     pT = np.mean(data["T"]) * np.ones(len(data))
     pT[data["T"] == 0] = 1 - pT[data["T"] == 0]
-    p_TC = researcher_specified_function_for_confounding(data, confound_func_params=confound_func_params)
+    p_TC = researcher_specified_function_for_confounding(
+        data, confound_func_params=confound_func_params
+    )
     p_TC[data["T"] == 0] = 1 - p_TC[data["T"] == 0]
     weights = p_TC / pT
     return weights, p_TC, pT
 
 
-def researcher_specified_function_for_confounding(data: pd.DataFrame, confound_func_params: Dict = {}) -> np.ndarray:
+def researcher_specified_function_for_confounding(
+    data: pd.DataFrame, confound_func_params: Dict = {}
+) -> np.ndarray:
     """
     This function implements the researcher-specified function for generating confounding.
 
@@ -131,17 +135,27 @@ def researcher_specified_function_for_confounding(data: pd.DataFrame, confound_f
         p_TC = np.zeros_like(data["C"], dtype=np.float32)
         for i, val in enumerate(unique_values):
             mask = data["C"] == val  # Create a boolean mask for elements equal to val
-            p_TC[mask] = confound_func_params[f"zeta{i}"]  # Assign corresponding value from confound_func_params
+            p_TC[mask] = confound_func_params[
+                f"zeta{i}"
+            ]  # Assign corresponding value from confound_func_params
     else:
         assert confound_func_params["para_form"] == "piecewise"
         assert confound_func_params.get("zeta0") is not None
         assert confound_func_params.get("zeta1") is not None
-        p_TC = np.array([confound_func_params["zeta1"] if c == 1 else confound_func_params["zeta0"] for c in data["C"]])
+        p_TC = np.array(
+            [
+                confound_func_params["zeta1"] if c == 1 else confound_func_params["zeta0"]
+                for c in data["C"]
+            ]
+        )
     return p_TC
 
 
 def resample_data_with_confound_func(
-    df: pd.DataFrame, confound_func_params: Optional[Dict] = None, seed: int = 42, M: Optional[float] = None
+    df: pd.DataFrame,
+    confound_func_params: Optional[Dict] = None,
+    seed: int = 42,
+    M: Optional[float] = None,
 ) -> pd.DataFrame:
     """
     Resamples a DataFrame based on confounder function parameters using a rejection sampler.
@@ -166,7 +180,9 @@ def resample_data_with_confound_func(
         confound_func_params = {"para_form": "piecewise", "zeta0": 0.15, "zeta1": 0.85}
 
     # Run rejection sampler
-    weights, p_TC, pT = weights_for_rejection_sampler(data=df, confound_func_params=confound_func_params)
+    weights, p_TC, pT = weights_for_rejection_sampler(
+        data=df, confound_func_params=confound_func_params
+    )
     if M is None:
         M = np.max(p_TC) / np.min(pT)
     rng = np.random.default_rng(seed)
@@ -179,7 +195,11 @@ def resample_data_with_confound_func(
 
 
 def subsample_df(
-    true_gamma: float, obs_data_pre_conf: pd.DataFrame, seed: int = 42, adversarial: bool = False, inv: bool = False
+    true_gamma: float,
+    obs_data_pre_conf: pd.DataFrame,
+    seed: int = 42,
+    adversarial: bool = False,
+    inv: bool = False,
 ) -> pd.DataFrame:
     """
     This function aims to create a subsampled dataset from the provided observational data
@@ -231,12 +251,18 @@ def subsample_df(
 
     # Sample the required number of treated and untreated from each group
     sampled_c0_treated = df_c0_treated.sample(n=num_c0_treated, random_state=seed, replace=True)
-    sampled_c0_untreated = df_c0_untreated.sample(n=num_c0_untreated, random_state=seed, replace=True)
+    sampled_c0_untreated = df_c0_untreated.sample(
+        n=num_c0_untreated, random_state=seed, replace=True
+    )
     sampled_c1_treated = df_c1_treated.sample(n=num_c1_treated, random_state=seed, replace=True)
-    sampled_c1_untreated = df_c1_untreated.sample(n=num_c1_untreated, random_state=seed, replace=True)
+    sampled_c1_untreated = df_c1_untreated.sample(
+        n=num_c1_untreated, random_state=seed, replace=True
+    )
 
     # Concatenate all sampled dataframes
-    subsampled_df = pd.concat([sampled_c0_treated, sampled_c0_untreated, sampled_c1_treated, sampled_c1_untreated])
+    subsampled_df = pd.concat(
+        [sampled_c0_treated, sampled_c0_untreated, sampled_c1_treated, sampled_c1_untreated]
+    )
     subsampled_df = subsampled_df.sample(frac=1, random_state=seed)
 
     return subsampled_df
