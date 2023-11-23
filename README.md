@@ -90,8 +90,8 @@ pip install -e .[tests]
 Example of using the package:
 
 ```bash
-from test_confounding.CATE.cate_bounds import MultipleCATEBoundEstimators
-from test_confounding.CATE.utils_cate_test import compute_bootstrap_variance
+from test_confounding.cate_bounds.cate_bounds import MultipleCATEBoundEstimators
+from test_confounding.cate_bounds.utils_cate_test import compute_bootstrap_variance
 from test_confounding.datasets import synthetic
 from test_confounding.test import run_multiple_cate_hypothesis_test
 
