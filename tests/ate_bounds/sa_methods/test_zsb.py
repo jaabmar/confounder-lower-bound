@@ -1,6 +1,6 @@
 import numpy as np
 
-from test_confounding.ATE.methods.ZSB import ZSBSensitivityAnalysis
+from test_confounding.ate_bounds.sa_methods.zsb import ZSBSensitivityAnalysis
 
 
 def test_zsb_sensitivity_analysis_init():

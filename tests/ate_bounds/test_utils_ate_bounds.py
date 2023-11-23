@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pytest
 
-from test_confounding.utils_evaluate import get_quantile_regressor
+from test_confounding.ate_bounds.utils_ate_bounds import get_quantile_regressor
 
 
 @pytest.fixture
@@ -22,8 +22,8 @@ def create_mock_search_cv(best_score):
     return mock_search_cv
 
 
-@patch("test_confounding.utils_evaluate.RandomizedSearchCV")
-@patch("test_confounding.utils_evaluate.GridSearchCV")
+@patch("test_confounding.ate_bounds.utils_ate_bounds.RandomizedSearchCV")
+@patch("test_confounding.ate_bounds.utils_ate_bounds.GridSearchCV")
 def test_get_quantile_regressor(mock_grid_search, mock_random_search):
     # Set mock return values
     mock_random_search.return_value = create_mock_search_cv(-1)

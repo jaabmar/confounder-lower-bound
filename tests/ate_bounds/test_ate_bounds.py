@@ -1,6 +1,6 @@
 import numpy as np
 
-from test_confounding.ATE.ate_bounds import BootstrapSensitivityAnalysis
+from test_confounding.ate_bounds.ate_bounds import BootstrapSensitivityAnalysis
 
 
 def test_bootstrap_sensitivity_analysis_init():

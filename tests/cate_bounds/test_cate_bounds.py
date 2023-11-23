@@ -1,6 +1,6 @@
 import numpy as np
 
-from test_confounding.CATE.cate_bounds import (
+from test_confounding.cate_bounds.cate_bounds import (
     CATEBoundsEstimator,
     MultipleCATEBoundEstimators,
 )

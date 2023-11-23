@@ -3,7 +3,7 @@ from unittest.mock import Mock
 import numpy as np
 import pytest
 
-from test_confounding.CATE.utils_cate_test import (
+from test_confounding.cate_bounds.utils_cate_bounds import (
     compute_bootstrap_variance,
     compute_bootstrap_variances_cate_bounds,
     resample_and_calculate_mean,

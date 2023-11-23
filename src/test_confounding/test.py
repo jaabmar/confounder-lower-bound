@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.stats import norm
 
-from test_confounding.CATE.cate_bounds import MultipleCATEBoundEstimators
+from test_confounding.cate_bounds.cate_bounds import MultipleCATEBoundEstimators
 
 
 def construct_ate_test_statistic(

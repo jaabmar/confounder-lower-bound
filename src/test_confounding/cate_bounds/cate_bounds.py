@@ -8,13 +8,13 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LogisticRegression
 from xgboost import XGBClassifier, XGBRegressor
 
-from test_confounding.CATE.BLearner.models.blearner.BLearner import (
+from test_confounding.cate_bounds.BLearner.models.blearner.BLearner import (
     BinaryCATEBLearner,
     BinaryPhiBLearner,
     BLearner,
     PhiBLearner,
 )
-from test_confounding.CATE.utils_cate_test import (
+from test_confounding.cate_bounds.utils_cate_bounds import (
     compute_bootstrap_variances_cate_bounds,
 )
 

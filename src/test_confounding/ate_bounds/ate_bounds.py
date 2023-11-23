@@ -5,9 +5,9 @@ from typing import Any, Callable, Dict, Optional, Tuple
 import numpy as np
 import xgboost as xgb
 
-from test_confounding.ATE.methods.QB import QBSensitivityAnalysis
-from test_confounding.ATE.methods.ZSB import ZSBSensitivityAnalysis
-from test_confounding.utils_evaluate import get_quantile_regressor
+from test_confounding.ate_bounds.sa_methods.qb import QBSensitivityAnalysis
+from test_confounding.ate_bounds.sa_methods.zsb import ZSBSensitivityAnalysis
+from test_confounding.ate_bounds.utils_ate_bounds import get_quantile_regressor
 
 
 class BootstrapSensitivityAnalysis:

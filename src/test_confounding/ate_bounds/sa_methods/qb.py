@@ -4,7 +4,7 @@ import numpy as np
 from mlinsights.mlmodel import QuantileLinearRegression
 from sklearn.linear_model import LogisticRegression
 
-from test_confounding.utils_evaluate import get_quantile_regressor
+from test_confounding.ate_bounds.utils_ate_bounds import get_quantile_regressor
 
 
 class QBSensitivityAnalysis:

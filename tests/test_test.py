@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pytest
 
-from test_confounding.CATE.cate_bounds import MultipleCATEBoundEstimators
+from test_confounding.cate_bounds.cate_bounds import MultipleCATEBoundEstimators
 from test_confounding.test import (
     construct_ate_test_statistic,
     construct_cate_test_statistic,

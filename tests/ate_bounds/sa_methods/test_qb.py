@@ -1,6 +1,6 @@
 import numpy as np
 
-from test_confounding.ATE.methods.QB import QBSensitivityAnalysis
+from test_confounding.ate_bounds.sa_methods.qb import QBSensitivityAnalysis
 
 
 def test_qb_sensitivity_analysis_init():
