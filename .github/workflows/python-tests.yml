@@ -23,13 +23,14 @@ jobs:
 
     - name: Install project and test dependencies
       run: pip install .[tests]
-      with:
-        cache: 'none'
 
     - name: Print Python Info
       run: |
         python --version
         pip list
+
+    - name: Print sys.path
+      run: python -c "import sys; print(sys.path)"
 
     - name: Run tests
       run: pytest tests/  

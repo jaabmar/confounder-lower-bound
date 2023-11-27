@@ -7,7 +7,7 @@ here = pathlib.Path(__file__).parent.resolve()
 long_description = (here / "README.md").read_text(encoding="utf-8")
 
 setup(
-    name="testing_hidden_conf",
+    name="test_confounding",
     version="0.0.1",
     description="Python implementation of the testing procedures introduced in the paper: Hidden yet quantifiable: A lower bound for confounding strength using randomized trials",
     long_description=long_description,
