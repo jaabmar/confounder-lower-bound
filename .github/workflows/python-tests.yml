@@ -3,7 +3,10 @@ name: Python Tests
 on:
   push:
     branches:
-      - main  
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   test:
@@ -17,9 +20,15 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: 3.11.5  
+    
+    - name: Set up virtual environment
+      run: python -m venv venv
 
-    - name: Install project and test dependencies
-      run: pip install .[tests]
+    - name: Activate virtual environment and install dependencies
+      run: |
+        source venv/bin/activate
+        pip install .
+        pip install .[tests]
 
     - name: Run tests
       run: pytest tests/  
