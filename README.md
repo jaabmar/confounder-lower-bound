@@ -4,6 +4,7 @@
 [![Python 3.11.5](https://img.shields.io/badge/python-3.11.5-blue.svg)](https://python.org/downloads/release/python-3115/)
 [![Pytorch 2.0.1](https://img.shields.io/badge/pytorch-2.0.1-blue.svg)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python Tests](https://github.com/jaabmar/confounder-lower-bound/actions/workflows/python-tests.yml/badge.svg)](https://github.com/jaabmar/confounder-lower-bound/actions/workflows/python-tests.yml)
 
 This repository contains the Python implementation of [Hidden yet quantifiable: A lower bound for confounding strength using randomized trials](https://arxiv.org/abs/2202.01315).
 
@@ -91,7 +92,7 @@ Example of using the package:
 
 ```bash
 from test_confounding.cate_bounds.cate_bounds import MultipleCATEBoundEstimators
-from test_confounding.cate_bounds.utils_cate_test import compute_bootstrap_variance
+from test_confounding.cate_bounds.utils_cate_bounds import compute_bootstrap_variance
 from test_confounding.datasets import synthetic
 from test_confounding.test import run_multiple_cate_hypothesis_test
 
@@ -150,6 +151,7 @@ For any inquiries, please reach out:
 
 - Javier Abad Martinez - [javier.abadmartinez@ai.ethz.ch](mailto:javier.abadmartinez@ai.ethz.ch)
 - Piersilvio de Bartolomeis - [pdebartol@ethz.ch](mailto:pdebartol@ethz.ch)
+- Konstantin Donhauser - [konstantin.donhauser@ai.ethz.ch](mailto:konstantin.donhauser@ai.ethz.ch)
 
 ## Citation
 

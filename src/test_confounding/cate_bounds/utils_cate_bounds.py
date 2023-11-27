@@ -3,7 +3,7 @@ from typing import Optional, Tuple, Union
 
 import numpy as np
 
-from test_confounding.cate_bounds.BLearner.models.blearner.BLearner import (
+from test_confounding.cate_bounds.blearner.BLearner import (
     BinaryCATEBLearner,
     BinaryPhiBLearner,
     BLearner,

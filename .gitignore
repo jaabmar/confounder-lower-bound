@@ -1,8 +1,9 @@
 **/__pycache__/**
 .vscode/settings.json
 src/.ipynb_checkpoints
-src/testing_hidden_conf.egg-info/top_level.txt
-src/testing_hidden_conf.egg-info/requires.txt
-src/testing_hidden_conf.egg-info/SOURCES.txt
-src/testing_hidden_conf.egg-info/PKG-INFO
-src/testing_hidden_conf.egg-info/dependency_links.txt
+src/testing_hidden_conf.egg-info**
+src/test_confounding.egg-info/dependency_links.txt
+src/test_confounding.egg-info/requires.txt
+src/test_confounding.egg-info/PKG-INFO
+src/test_confounding.egg-info/top_level.txt
+src/test_confounding.egg-info/SOURCES.txt
