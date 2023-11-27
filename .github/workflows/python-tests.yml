@@ -22,7 +22,7 @@ jobs:
         python-version: 3.11.5  
 
     - name: Install project and test dependencies
-      run: pip install .[tests]]
+      run: pip install .[tests]
 
     - name: Run tests
       run: pytest tests/  
