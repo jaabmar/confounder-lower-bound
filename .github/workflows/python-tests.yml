@@ -16,21 +16,13 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Set up Conda
-      uses: conda-incubator/setup-miniconda@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
       with:
         python-version: 3.11.5  
 
-    - name: Set up Conda environment
-      run: conda create --name myenv python=3.11.5
-    
-    - name: Activate Conda
-      run: conda init bash
-
-    - name: Activate environment and install dependencies
-      run: |
-        conda activate myenv
-        pip install .[tests]
+    - name: Install project and test dependencies
+      run: pip install .[tests]]
 
     - name: Run tests
       run: pytest tests/  
