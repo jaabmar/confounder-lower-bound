@@ -1,12 +1,12 @@
 # Testing for Hidden Confounding in Observational Studies
 
-[![arXiv](https://img.shields.io/badge/stat.ML-arXiv%3A2006.08437-B31B1B.svg)](https://arxiv.org/abs/2202.01315)
+[![arXiv](https://img.shields.io/badge/stat.ML-arXiv%3A2006.08437-B31B1B.svg)](https://arxiv.org/abs/2312.03871)
 [![Python 3.11.5](https://img.shields.io/badge/python-3.11.5-blue.svg)](https://python.org/downloads/release/python-3115/)
 [![Pytorch 2.0.1](https://img.shields.io/badge/pytorch-2.0.1-blue.svg)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python Tests](https://github.com/jaabmar/confounder-lower-bound/actions/workflows/python-tests.yml/badge.svg)](https://github.com/jaabmar/confounder-lower-bound/actions/workflows/python-tests.yml)
 
-This repository contains the Python implementation of [Hidden yet quantifiable: A lower bound for confounding strength using randomized trials](https://arxiv.org/abs/2202.01315).
+This repository contains the Python implementation of [Hidden yet quantifiable: A lower bound for confounding strength using randomized trials](https://arxiv.org/abs/2312.03871).
 
 * [Overview](#overview)
 * [Getting Started](#getting-started)
@@ -83,7 +83,7 @@ There are two ways to install the package:
 
 To run the unit tests located in the `\tests` folder, you need to install additional dependencies. These dependencies are required for testing and ensure that you can run all the tests properly.
 ```bash
-pip install -e .[tests]
+pip install .[tests]
 ```
 
 ## Usage
@@ -157,10 +157,13 @@ For any inquiries, please reach out:
 
 If you find this code useful, please consider citing our paper:
  ```
-@inproceedings{debartolomeis2023hidden,
+@article{debartolomeis2023hidden,
   title={Hidden yet quantifiable: A lower bound for confounding strength using randomized trials},
-  author={de Bartolomeis, Piersilvio^*, and Abad Martinez, Javier^* and Donhauser, Konstantin and Yang, Fanny},
-  booktitle={Under Review},
-  year={2023}
+  author={Piersilvio De Bartolomeis and Javier Abad and Konstantin Donhauser and Fanny Yang},
+  year={2023},
+  journal={arXiv preprint arXiv:2312.03871},
+  eprint={2312.03871},
+  archivePrefix={arXiv},
+  primaryClass={stat.ML}
 }
 ```
