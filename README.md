@@ -2,7 +2,7 @@
 
 [![arXiv](https://img.shields.io/badge/stat.ML-arXiv%3A2006.08437-B31B1B.svg)](https://arxiv.org/abs/2312.03871)
 [![Python 3.11.5](https://img.shields.io/badge/python-3.11.5-blue.svg)](https://python.org/downloads/release/python-3115/)
-[![Pytorch 2.0.1](https://img.shields.io/badge/pytorch-2.0.1-blue.svg)](https://pytorch.org/)
+[![Pytorch 2.0.1](https://img.shields.io/badge/pytorch-2.0.1-green.svg)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python Tests](https://github.com/jaabmar/confounder-lower-bound/actions/workflows/python-tests.yml/badge.svg)](https://github.com/jaabmar/confounder-lower-bound/actions/workflows/python-tests.yml)
 
