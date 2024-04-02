@@ -157,13 +157,10 @@ For any inquiries, please reach out:
 
 If you find this code useful, please consider citing our paper:
  ```
-@article{debartolomeis2023hidden,
+@article{de2023hidden,
   title={Hidden yet quantifiable: A lower bound for confounding strength using randomized trials},
-  author={Piersilvio De Bartolomeis and Javier Abad and Konstantin Donhauser and Fanny Yang},
-  year={2023},
-  journal={arXiv preprint arXiv:2312.03871},
-  eprint={2312.03871},
-  archivePrefix={arXiv},
-  primaryClass={stat.ML}
+  author={De Bartolomeis, Piersilvio and Abad, Javier and Donhauser, Konstantin and Yang, Fanny},
+  journal={International Conference on Artificial Intelligence and Statistics},
+  year={2024}
 }
 ```
