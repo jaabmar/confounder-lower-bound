@@ -36,7 +36,7 @@ setup(
     install_requires=[
         "numpy==1.24.3",
         "scipy==1.10.1",
-        "mlinsights==0.5.0",
+        # "mlinsights==0.5.0",
         "scikit-learn==1.3.0",
         "pandas==1.5.3",
         "xgboost==1.7.3",
