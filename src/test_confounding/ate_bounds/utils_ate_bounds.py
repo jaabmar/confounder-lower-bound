@@ -59,7 +59,7 @@ def get_quantile_regressor(
     # Solve linear quantile regression approximately (no linear program) --> much faster and scales to 100k+ datapoints
     if fast_solver:
         # quant_reg = QuantileLinearRegression(quantile=tau, max_iter=500)
-        quant_reg = QuantileRegressor(quantile=tau, max_iter=500)
+        quant_reg = QuantileRegressor(quantile=tau)
         quant_reg.fit(X, y)
         return quant_reg
 
