@@ -40,4 +40,5 @@ setup(
     extras_require={
         "tests": ["pytest==7.2.1", "pytest-mock==3.10.0"],
     },
+    include_package_data=True,
 )
