@@ -38,7 +38,6 @@ setup(
         "scipy==1.10.1",
         "mlinsights==0.5.0",
         "scikit-learn==1.3.0",
-        "statsmodels==0.13.5",
         "pandas==1.5.3",
         "xgboost==1.7.3",
         "scikit-uplift==0.5.1",
