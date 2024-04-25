@@ -44,7 +44,6 @@ As depicted in the image above, the application of our methodology in the drug r
 - Scipy 1.10.1
 - MLinsights 0.4.664
 - Scikit-learn 1.3.0
-- Statsmodels 0.13.5
 - Pandas 1.5.3
 - XGBoost 1.7.3
 - Scikit-uplift 0.5.1
