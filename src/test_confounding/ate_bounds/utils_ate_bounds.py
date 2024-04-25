@@ -6,7 +6,6 @@ from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.linear_model import QuantileRegressor
 from sklearn.metrics import make_scorer, mean_pinball_loss
 from sklearn.model_selection import GridSearchCV, KFold, RandomizedSearchCV
-from statsmodels.api import QuantReg
 
 PARAMS_DICT_LGBM = {
     "min_samples_leaf": [1, 5, 10, 20],
@@ -27,7 +26,7 @@ def get_quantile_regressor(
     quantile_param_dist: Optional[Dict[str, Union[float, int]]] = None,
     fast_solver: bool = False,
 ) -> Optional[
-    Union[QuantReg, QuantileRegressor, GradientBoostingRegressor, QuantileLinearRegression]
+    Union[QuantileRegressor, GradientBoostingRegressor, QuantileLinearRegression]
 ]:
     """
     Trains a quantile regressor model on given data and returns the best model based on test scores.
@@ -47,7 +46,7 @@ def get_quantile_regressor(
         fast_solver (bool, optional): Use a faster solver for linear quantile regression. Default is False.
 
     Returns:
-        Optional[Union[QuantReg, QuantileRegressor, GradientBoostingRegressor, QuantileLinearRegression]]:
+        Optional[Union[QuantileRegressor, GradientBoostingRegressor, QuantileLinearRegression]]:
             Best model object based on test scores.
     """
 
