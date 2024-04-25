@@ -1,8 +1,8 @@
 from typing import Callable, Optional, Tuple
 
 import numpy as np
-from mlinsights.mlmodel import QuantileLinearRegression
-from sklearn.linear_model import LogisticRegression
+# from mlinsights.mlmodel import QuantileLinearRegression
+from sklearn.linear_model import LogisticRegression, QuantileRegressor
 
 from test_confounding.ate_bounds.utils_ate_bounds import get_quantile_regressor
 
@@ -185,7 +185,8 @@ class QBSensitivityAnalysis:
         Returns:
             The computed lower/upper bound.
         """
-        quant_reg = QuantileLinearRegression(quantile=self.tau, max_iter=1000)
+        # quant_reg = QuantileLinearRegression(quantile=self.tau, max_iter=1000)
+        quant_reg = QuantileRegressor(quantile=self.tau)
 
         # Fit  quantile regressor
         quant_reg.fit(g_x, target, sample_weight=self.weights)
