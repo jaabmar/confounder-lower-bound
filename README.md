@@ -157,10 +157,12 @@ For any inquiries, please reach out:
 
 If you find this code useful, please consider citing our paper:
  ```
-@article{de2023hidden,
+@inproceedings{de2024hidden,
   title={Hidden yet quantifiable: A lower bound for confounding strength using randomized trials},
-  author={De Bartolomeis, Piersilvio and Abad, Javier and Donhauser, Konstantin and Yang, Fanny},
-  journal={International Conference on Artificial Intelligence and Statistics},
-  year={2024}
+  author={De Bartolomeis, Piersilvio and Martinez, Javier Abad and Donhauser, Konstantin and Yang, Fanny},
+  booktitle={International Conference on Artificial Intelligence and Statistics},
+  pages={1045--1053},
+  year={2024},
+  organization={PMLR}
 }
 ```
