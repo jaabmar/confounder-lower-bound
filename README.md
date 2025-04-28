@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python Tests](https://github.com/jaabmar/confounder-lower-bound/actions/workflows/python-tests.yml/badge.svg)](https://github.com/jaabmar/confounder-lower-bound/actions/workflows/python-tests.yml)
 
-This repository contains the Python implementation of [Hidden yet quantifiable: A lower bound for confounding strength using randomized trials](https://arxiv.org/abs/2312.03871).
+This repository contains the Python implementation of the **AISTATS 2024 paper** [Hidden yet quantifiable: A lower bound for confounding strength using randomized trials](https://arxiv.org/abs/2312.03871).
 
 * [Overview](#overview)
 * [Getting Started](#getting-started)
